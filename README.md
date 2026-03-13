@@ -1,6 +1,13 @@
 # SHDhwahd
 
-This repo now contains a browser-based HTML/JS version of the drag racing game logic so it can run directly on GitHub Pages.
+This repo contains a browser-based drag racing game that runs directly on GitHub Pages.
+
+## Features
+
+- Scratch-style visual layout and race track.
+- Start races with **Start Race** button or **Space** key.
+- Buy upgrades in the in-game shop.
+- Edit your money instantly by typing any value into the **Cash** input.
 
 ## Run locally
 
