@@ -1,492 +1,261 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="sv">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Scratch-Style Drag Race (GitHub)</title>
-  <style>
-    :root {
-      --sky-1: #84d4ff;
-      --sky-2: #d7f4ff;
-      --road: #444;
-      --road-dark: #2f2f2f;
-      --grass: #48aa46;
-      --panel: #18253f;
-      --panel-2: #22355f;
-      --text: #eff7ff;
-      --money: #ffd765;
-      --good: #57f59a;
-      --bad: #ff8888;
-      --neutral: #9fd8ff;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drag Racing Builder</title>
 
-    * { box-sizing: border-box; }
+<style>
+body{
+font-family:Arial;
+background:#111;
+color:white;
+margin:0;
+text-align:center;
+}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-      background: linear-gradient(180deg, var(--sky-2) 0%, var(--sky-1) 40%, #74c1ff 100%);
-      color: var(--text);
-      padding: 1rem;
-    }
+header{
+background:#222;
+padding:10px;
+font-size:24px;
+}
 
-    .app {
-      width: min(980px, 100%);
-      border-radius: 18px;
-      overflow: hidden;
-      border: 2px solid #2b3f6c;
-      box-shadow: 0 14px 34px rgba(6, 22, 48, 0.35);
-      background: linear-gradient(180deg, #1f3157 0%, #18253f 100%);
-    }
+.container{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:20px;
+padding:20px;
+}
 
-    .top {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid #3a558f;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.75rem;
-      align-items: center;
-    }
+.panel{
+background:#1c1c1c;
+padding:15px;
+border-radius:10px;
+width:300px;
+}
 
-    .top h1 {
-      margin: 0;
-      font-size: 1.15rem;
-      letter-spacing: .2px;
-    }
+button{
+padding:10px;
+margin:5px;
+border:none;
+border-radius:6px;
+background:#ff6a00;
+color:white;
+font-weight:bold;
+}
 
-    .status-wrap {
-      display: flex;
-      gap: .5rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+button:hover{
+background:#ff8c2f;
+}
 
-    #status {
-      font-weight: 700;
-      color: var(--neutral);
-      background: rgba(255,255,255,0.08);
-      border: 1px solid #4462a1;
-      border-radius: 999px;
-      padding: .25rem .65rem;
-      white-space: nowrap;
-    }
+img{
+width:100%;
+border-radius:10px;
+}
 
-    .good { color: var(--good) !important; }
-    .bad { color: var(--bad) !important; }
+.car-list{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+}
 
-    .money {
-      display: flex;
-      align-items: center;
-      gap: .4rem;
-      background: rgba(255, 216, 102, 0.15);
-      border: 1px solid rgba(255, 216, 102, 0.55);
-      color: var(--money);
-      border-radius: 999px;
-      padding: .25rem .7rem;
-      font-weight: 700;
-    }
+.slider{
+width:100%;
+}
 
-    .money input {
-      width: 120px;
-      border: 1px solid rgba(255, 216, 102, 0.65);
-      border-radius: 8px;
-      background: #111a2f;
-      color: var(--money);
-      padding: .2rem .4rem;
-      font-weight: 700;
-    }
+.money{
+font-size:20px;
+color:#00ff7b;
+}
 
-    .content {
-      display: grid;
-      grid-template-columns: 1.3fr .8fr;
-      gap: .75rem;
-      padding: .75rem;
-    }
-
-    #track {
-      width: 100%;
-      height: auto;
-      display: block;
-      border-radius: 14px;
-      border: 1px solid #4462a1;
-      background: linear-gradient(#8dd9ff 0%, #b7ebff 38%, #4eb94c 38%, #4eb94c 100%);
-    }
-
-    .side {
-      display: grid;
-      gap: .6rem;
-      align-content: start;
-    }
-
-    .panel {
-      border: 1px solid #3f5b96;
-      border-radius: 12px;
-      background: var(--panel-2);
-      padding: .6rem;
-      font-size: .93rem;
-      line-height: 1.35;
-    }
-
-    .panel strong { color: #d9ebff; }
-
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .45rem;
-    }
-
-    button {
-      border: 1px solid #5f7fca;
-      color: #f4f8ff;
-      border-radius: 10px;
-      background: linear-gradient(180deg, #5273be 0%, #3f5c9f 100%);
-      font-weight: 700;
-      cursor: pointer;
-      padding: .5rem;
-    }
-
-    button:hover { filter: brightness(1.1); }
-    button:active { transform: translateY(1px); }
-
-    .controls button:first-child {
-      grid-column: 1 / -1;
-      background: linear-gradient(180deg, #56ce7f 0%, #33a85b 100%);
-      border-color: #6df59d;
-      color: #03220f;
-    }
-
-    .hint {
-      opacity: .92;
-      font-size: .84rem;
-      margin-top: .35rem;
-    }
-
-    code {
-      background: #101b34;
-      border: 1px solid #344f87;
-      border-radius: 6px;
-      padding: .08rem .35rem;
-    }
-
-    @media (max-width: 860px) {
-      .content { grid-template-columns: 1fr; }
-      .controls { grid-template-columns: 1fr; }
-      .controls button:first-child { grid-column: auto; }
-    }
-  </style>
+@media(max-width:700px){
+.container{
+flex-direction:column;
+align-items:center;
+}
+}
+</style>
 </head>
+
 <body>
-  <main class="app">
-    <header class="top">
-      <h1>Scratch-Style Drag Race — GitHub Version</h1>
-      <div class="status-wrap">
-        <div id="status">Press SPACE or Start Race</div>
-        <label class="money">💰 Cash
-          <input id="cashInput" type="number" value="1000" min="0" step="1" aria-label="cash amount" />
-        </label>
-      </div>
-    </header>
 
-    <section class="content">
-      <canvas id="track" width="900" height="380" aria-label="drag-race track"></canvas>
+<header>🏁 Drag Racing Builder</header>
 
-      <aside class="side">
-        <div class="panel">
-          <strong>Race + Shop</strong>
-          <div class="controls">
-            <button id="startBtn">Start Race</button>
-            <button id="turboBtn">Turbo (+HP) - $300</button>
-            <button id="tiresBtn">Tires (+Grip) - $220</button>
-            <button id="wingBtn">Wing (+Aero) - $180</button>
-          </div>
-          <div class="hint">Set your money directly in the <code>Cash</code> box any time.</div>
-          <div class="hint">Win reward: <code>$250</code> • Lose reward: <code>$70</code></div>
-        </div>
+<div class="money">Pengar: $<span id="money"></span></div>
 
-        <div class="panel" id="playerStats"></div>
-        <div class="panel" id="enemyStats"></div>
-      </aside>
-    </section>
-  </main>
+<div class="container">
 
-  <script>
-    class CarStats {
-      constructor(horsepower = 200, weight = 1200, traction = 1, aerodynamics = 1) {
-        this.horsepower = horsepower;
-        this.weight = weight;
-        this.traction = traction;
-        this.aerodynamics = aerodynamics;
-      }
-      getAcceleration() {
-        return (this.horsepower / this.weight) * this.traction * 52;
-      }
-      getTopSpeed() {
-        return this.horsepower * this.aerodynamics * 0.22;
-      }
-    }
+<div class="panel">
 
-    class Part {
-      constructor(partName, cost, horsepowerBonus = 0, weightBonus = 0, tractionBonus = 0, aeroBonus = 0) {
-        this.partName = partName;
-        this.cost = cost;
-        this.horsepowerBonus = horsepowerBonus;
-        this.weightBonus = weightBonus;
-        this.tractionBonus = tractionBonus;
-        this.aeroBonus = aeroBonus;
-      }
-    }
+<h3>Välj svårighet</h3>
+<input type="range" min="1" max="100" value="50" class="slider" id="difficulty">
+<p id="diffText">50</p>
 
-    class Car {
-      constructor(name, color, laneY) {
-        this.name = name;
-        this.color = color;
-        this.laneY = laneY;
-        this.stats = new CarStats();
-        this.installedParts = [];
-        this.resetCar();
-      }
-      resetCar() {
-        this.x = DragCarGame.START_X;
-        this.velocity = 0;
-      }
-      installPart(part) {
-        this.installedParts.push(part);
-        this.stats.horsepower += part.horsepowerBonus;
-        this.stats.weight += part.weightBonus;
-        this.stats.traction += part.tractionBonus;
-        this.stats.aerodynamics += part.aeroBonus;
-      }
-      step(dt) {
-        const accel = this.stats.getAcceleration();
-        const topSpeed = this.stats.getTopSpeed();
-        this.velocity = Math.min(topSpeed, this.velocity + accel * dt);
-        this.x += this.velocity * dt * 2.5;
-      }
-    }
+<h3>Distans</h3>
+<input type="range" min="100" max="10000" value="1000" class="slider" id="distance">
+<p id="distText">1000 m</p>
 
-    class DragCarGame {
-      static START_X = 80;
+<button onclick="startRace()">STARTA RACE</button>
 
-      constructor(canvas) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
-        this.finishLineX = canvas.width - 100;
-        this.finishRadius = 8;
-        this.raceResetDelay = 2500;
+</div>
 
-        this.playerCar = new Car('PLAYER', '#5ffca0', 220);
-        this.enemyCar = new Car('ENEMY', '#ff7c7c', 290);
+<div class="panel">
 
-        this.raceStarted = false;
-        this.raceFinished = false;
-        this.lastTime = performance.now();
+<h3>Din bil</h3>
 
-        this.cashInput = document.getElementById('cashInput');
-        this.statusEl = document.getElementById('status');
-        this.playerStatsEl = document.getElementById('playerStats');
-        this.enemyStatsEl = document.getElementById('enemyStats');
+<img id="carImage" src="https://images.unsplash.com/photo-1503376780353-7e6692767b70">
 
-        this.parts = {
-          turbo: new Part('Turbo', 300, 45, 10, 0, 0.03),
-          tires: new Part('Tires', 220, 0, 0, 0.22, 0),
-          wing: new Part('Wing', 180, 0, 5, 0, 0.13)
-        };
+<p id="carName">Starter Car</p>
 
-        this.bindUI();
-        this.updateStats();
-        this.loop = this.loop.bind(this);
-        requestAnimationFrame(this.loop);
-      }
+</div>
 
-      getCash() {
-        return Math.max(0, Number(this.cashInput.value) || 0);
-      }
+<div class="panel">
 
-      setCash(value) {
-        this.cashInput.value = String(Math.max(0, Math.floor(value)));
-      }
+<h3>Köp bilar</h3>
 
-      addCash(amount) {
-        this.setCash(this.getCash() + amount);
-      }
+<div class="car-list" id="carShop"></div>
 
-      spendCash(amount) {
-        if (this.getCash() < amount) return false;
-        this.setCash(this.getCash() - amount);
-        return true;
-      }
+</div>
 
-      bindUI() {
-        const start = () => {
-          if (!this.raceStarted && !this.raceFinished) {
-            this.startRace();
-          }
-        };
+<div class="panel">
 
-        document.getElementById('startBtn').addEventListener('click', start);
-        document.addEventListener('keydown', (e) => {
-          if (e.code === 'Space') {
-            e.preventDefault();
-            start();
-          }
-        });
+<h3>Uppgraderingar</h3>
 
-        this.cashInput.addEventListener('change', () => this.setCash(this.cashInput.value));
+<button onclick="upgrade('engine')">Motor</button>
+<button onclick="upgrade('body')">Body kit</button>
+<button onclick="upgrade('wing')">Wing</button>
+<button onclick="upgrade('rims')">Fälgar</button>
+<button onclick="upgrade('tires')">Däck</button>
 
-        document.getElementById('turboBtn').addEventListener('click', () => this.buyPart(this.parts.turbo));
-        document.getElementById('tiresBtn').addEventListener('click', () => this.buyPart(this.parts.tires));
-        document.getElementById('wingBtn').addEventListener('click', () => this.buyPart(this.parts.wing));
-      }
+</div>
 
-      buyPart(part) {
-        if (!this.spendCash(part.cost)) {
-          this.setStatus(`Not enough cash for ${part.partName}`, 'bad');
-          return;
-        }
-        this.playerCar.installPart(part);
-        this.setStatus(`${part.partName} installed!`, 'good');
-        this.updateStats();
-      }
+</div>
 
-      startRace() {
-        this.raceStarted = true;
-        this.raceFinished = false;
-        this.playerCar.resetCar();
-        this.enemyCar.resetCar();
+<script>
 
-        this.enemyCar.stats.horsepower = 190 + Math.random() * 38;
-        this.enemyCar.stats.traction = 0.94 + Math.random() * 0.25;
-        this.enemyCar.stats.aerodynamics = 0.95 + Math.random() * 0.2;
+// SKAPAREN ÄNDRAR PENGAR HÄR
+let money = 50000;
 
-        this.setStatus('Race started!', 'good');
-      }
+let cars = [
+{name:"Starter",price:0,img:"https://images.unsplash.com/photo-1503376780353-7e6692767b70"},
+{name:"Street Racer",price:10000,img:"https://images.unsplash.com/photo-1511919884226-fd3cad34687c"},
+{name:"Turbo Coupe",price:20000,img:"https://images.unsplash.com/photo-1502877338535-766e1452684a"},
+{name:"Drag Beast",price:30000,img:"https://images.unsplash.com/photo-1503736334956-4c8f8e92946d"},
+{name:"Nitro GT",price:40000,img:"https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98"},
+{name:"V8 Monster",price:60000,img:"https://images.unsplash.com/photo-1503376780353-7e6692767b70"},
+{name:"Hyper Racer",price:80000,img:"https://images.unsplash.com/photo-1493238792000-8113da705763"},
+{name:"Track King",price:100000,img:"https://images.unsplash.com/photo-1503736334956-4c8f8e92946d"},
+{name:"Carbon Drag",price:150000,img:"https://images.unsplash.com/photo-1502877338535-766e1452684a"},
+{name:"Ultimate Racer",price:200000,img:"https://images.unsplash.com/photo-1511919884226-fd3cad34687c"}
+]
 
-      checkWinner() {
-        if (this.raceFinished) return;
+let owned=[0]
+let currentCar=0
 
-        const playerDistance = Math.abs(this.finishLineX - this.playerCar.x);
-        const enemyDistance = Math.abs(this.finishLineX - this.enemyCar.x);
+function updateMoney(){
+document.getElementById("money").innerText=money
+}
 
-        if (playerDistance < this.finishRadius) this.finishRace('PLAYER');
-        if (enemyDistance < this.finishRadius) this.finishRace('ENEMY');
-      }
+function buildShop(){
 
-      finishRace(winner) {
-        if (this.raceFinished) return;
-        this.raceFinished = true;
-        this.raceStarted = false;
+let shop=document.getElementById("carShop")
 
-        if (winner === 'PLAYER') {
-          this.addCash(250);
-          this.setStatus('PLAYER WINS! +$250', 'good');
-        } else {
-          this.addCash(70);
-          this.setStatus('ENEMY WINS! +$70', 'bad');
-        }
+cars.forEach((car,i)=>{
 
-        setTimeout(() => {
-          this.raceFinished = false;
-          this.setStatus('Press SPACE or Start Race');
-        }, this.raceResetDelay);
-      }
+let btn=document.createElement("button")
+btn.innerText=car.name+" $"+car.price
 
-      setStatus(message, className = '') {
-        this.statusEl.className = className;
-        this.statusEl.textContent = message;
-      }
+btn.onclick=()=>buyCar(i)
 
-      drawBackground() {
-        const c = this.ctx;
-        c.clearRect(0, 0, this.canvas.width, this.canvas.height);
+shop.appendChild(btn)
 
-        c.fillStyle = '#4eb94c';
-        c.fillRect(0, 145, this.canvas.width, 235);
+})
 
-        c.fillStyle = 'rgba(255,255,255,.7)';
-        c.beginPath(); c.arc(130, 54, 26, 0, Math.PI * 2); c.fill();
-        c.beginPath(); c.arc(166, 54, 32, 0, Math.PI * 2); c.fill();
-        c.beginPath(); c.arc(201, 54, 22, 0, Math.PI * 2); c.fill();
+}
 
-        c.fillStyle = '#5f6a82';
-        c.fillRect(0, 170, this.canvas.width, 150);
-        c.fillStyle = '#3b445b';
-        c.fillRect(0, 235, this.canvas.width, 85);
+function buyCar(id){
 
-        c.strokeStyle = '#dfe6f0';
-        c.lineWidth = 3;
-        c.setLineDash([16, 12]);
-        c.beginPath(); c.moveTo(0, 246); c.lineTo(this.canvas.width, 246); c.stroke();
-        c.setLineDash([]);
+let car=cars[id]
 
-        c.fillStyle = '#ffffff';
-        c.fillRect(this.finishLineX, 170, 7, 150);
-        for (let i = 0; i < 10; i++) {
-          c.fillStyle = i % 2 ? '#111' : '#fff';
-          c.fillRect(this.finishLineX + 7, 170 + i * 15, 15, 15);
-        }
+if(money>=car.price){
 
-        c.fillStyle = '#1f2f57';
-        c.fillRect(16, 160, 66, 170);
-        c.fillStyle = '#ffe37f';
-        c.fillRect(30, 186, 10, 10);
-        c.fillRect(30, 206, 10, 10);
-        c.fillRect(30, 226, 10, 10);
-      }
+money-=car.price
+owned.push(id)
 
-      drawCar(car) {
-        const c = this.ctx;
-        const y = car.laneY;
+selectCar(id)
 
-        c.fillStyle = car.color;
-        c.fillRect(car.x, y - 18, 56, 24);
-        c.fillRect(car.x + 16, y - 28, 24, 12);
+updateMoney()
 
-        c.fillStyle = '#0e1422';
-        c.fillRect(car.x + 21, y - 26, 16, 9);
+}else{
 
-        c.fillStyle = '#1a1a1a';
-        c.beginPath(); c.arc(car.x + 12, y + 8, 7, 0, Math.PI * 2); c.fill();
-        c.beginPath(); c.arc(car.x + 44, y + 8, 7, 0, Math.PI * 2); c.fill();
-      }
+alert("Inte tillräckligt pengar!")
 
-      updateStats() {
-        const p = this.playerCar.stats;
-        const e = this.enemyCar.stats;
+}
 
-        this.playerStatsEl.innerHTML = `<strong>Player Stats</strong><br>
-          HP: ${p.horsepower.toFixed(1)} | Weight: ${p.weight.toFixed(1)}<br>
-          Grip: ${p.traction.toFixed(2)} | Aero: ${p.aerodynamics.toFixed(2)}<br>
-          Accel: ${p.getAcceleration().toFixed(2)} | Top: ${p.getTopSpeed().toFixed(2)}<br>
-          Parts: ${this.playerCar.installedParts.length}`;
+}
 
-        this.enemyStatsEl.innerHTML = `<strong>Enemy Stats</strong><br>
-          HP: ${e.horsepower.toFixed(1)} | Weight: ${e.weight.toFixed(1)}<br>
-          Grip: ${e.traction.toFixed(2)} | Aero: ${e.aerodynamics.toFixed(2)}<br>
-          Accel: ${e.getAcceleration().toFixed(2)} | Top: ${e.getTopSpeed().toFixed(2)}`;
-      }
+function selectCar(id){
 
-      loop(now) {
-        const dt = Math.min(0.032, (now - this.lastTime) / 1000);
-        this.lastTime = now;
+currentCar=id
 
-        if (this.raceStarted) {
-          this.playerCar.step(dt);
-          this.enemyCar.step(dt);
-          this.checkWinner();
-          this.updateStats();
-        }
+document.getElementById("carImage").src=cars[id].img
+document.getElementById("carName").innerText=cars[id].name
 
-        this.drawBackground();
-        this.drawCar(this.playerCar);
-        this.drawCar(this.enemyCar);
-        requestAnimationFrame(this.loop);
-      }
-    }
+}
 
-    new DragCarGame(document.getElementById('track'));
-  </script>
+function upgrade(type){
+
+if(money>=5000){
+
+money-=5000
+updateMoney()
+alert(type+" uppgraderad!")
+
+}else{
+
+alert("Inte tillräckligt pengar!")
+
+}
+
+}
+
+function startRace(){
+
+let diff=document.getElementById("difficulty").value
+let dist=document.getElementById("distance").value
+
+let winChance=100-diff+Math.random()*50
+
+if(winChance>50){
+
+let reward=Math.floor(dist/5)
+money+=reward
+
+alert("Du vann! +" + reward + "$")
+
+}else{
+
+alert("Du förlorade racet!")
+
+}
+
+updateMoney()
+
+}
+
+document.getElementById("difficulty").oninput=(e)=>{
+document.getElementById("diffText").innerText=e.target.value
+}
+
+document.getElementById("distance").oninput=(e)=>{
+document.getElementById("distText").innerText=e.target.value+" m"
+}
+
+updateMoney()
+buildShop()
+
+</script>
+
 </body>
 </html>
