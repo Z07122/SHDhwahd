@@ -6,12 +6,28 @@ public class DragCarGame : MonoBehaviour
     public Car playerCar;
     public Car enemyCar;
     public Transform finishLine;
+    public float finishLineRadius = 5f; // Made configurable
+    public float raceResetDelay = 3f;
 
     private bool raceStarted = false;
+    private bool raceFinished = false;
+
+    void Start()
+    {
+        ValidateReferences();
+    }
+
+    void ValidateReferences()
+    {
+        if (playerCar == null || enemyCar == null || finishLine == null)
+        {
+            Debug.LogError("DragCarGame: Missing required references!");
+        }
+    }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (!raceStarted && !raceFinished && Input.GetKeyDown(KeyCode.Space))
         {
             StartRace();
         }
@@ -25,26 +41,45 @@ public class DragCarGame : MonoBehaviour
     void StartRace()
     {
         raceStarted = true;
+        raceFinished = false;
+        playerCar.ResetCar();
+        enemyCar.ResetCar();
+        enemyCar.EnableAI(true); // Start AI
         Debug.Log("Race Started!");
     }
 
     void CheckWinner()
     {
+        if (raceFinished) return;
+
         float playerDistance = Vector3.Distance(playerCar.transform.position, finishLine.position);
         float enemyDistance = Vector3.Distance(enemyCar.transform.position, finishLine.position);
 
-        if (playerDistance < 5f)
+        if (playerDistance < finishLineRadius)
         {
-            raceStarted = false;
-            Debug.Log("PLAYER WINS!");
+            DecideWinner("PLAYER");
             return;
         }
 
-        if (enemyDistance < 5f)
+        if (enemyDistance < finishLineRadius)
         {
-            raceStarted = false;
-            Debug.Log("ENEMY WINS!");
+            DecideWinner("ENEMY");
         }
+    }
+
+    void DecideWinner(string winner)
+    {
+        raceStarted = false;
+        raceFinished = true;
+        enemyCar.EnableAI(false);
+        Debug.Log(winner + " WINS!");
+        Invoke(nameof(ResetRace), raceResetDelay);
+    }
+
+    void ResetRace()
+    {
+        raceFinished = false;
+        Debug.Log("Press SPACE to start a new race");
     }
 }
 
@@ -70,7 +105,6 @@ public class CarStats
 public class Part : MonoBehaviour
 {
     public string partName;
-
     public float horsepowerBonus;
     public float weightBonus;
     public float tractionBonus;
@@ -81,16 +115,35 @@ public class Car : MonoBehaviour
 {
     public CarStats stats = new CarStats();
     public List<Part> installedParts = new List<Part>();
-
+    
     private Rigidbody rb;
+    private Vector3 startPosition;
+    private Quaternion startRotation;
+    private bool aiEnabled = false;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         if (rb == null)
         {
-            Debug.LogError("Rigidbody component missing on car: " + gameObject.name + ". Please add a Rigidbody component.");
+            Debug.LogError("Rigidbody component missing on car: " + gameObject.name);
         }
+
+        startPosition = transform.position;
+        startRotation = transform.rotation;
+    }
+
+    public void ResetCar()
+    {
+        transform.position = startPosition;
+        transform.rotation = startRotation;
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+    }
+
+    public void EnableAI(bool enable)
+    {
+        aiEnabled = enable;
     }
 
     public void InstallPart(Part part)
@@ -102,7 +155,6 @@ public class Car : MonoBehaviour
         }
 
         installedParts.Add(part);
-
         stats.horsepower += part.horsepowerBonus;
         stats.weight += part.weightBonus;
         stats.traction += part.tractionBonus;
@@ -118,9 +170,11 @@ public class Car : MonoBehaviour
         float accel = stats.GetAcceleration();
         float topSpeed = stats.GetTopSpeed();
 
+        // Proper speed clamping
         if (rb.velocity.magnitude < topSpeed)
         {
-            rb.AddForce(transform.forward * accel);
+            Vector3 forceDirection = aiEnabled ? transform.forward : transform.forward;
+            rb.AddForce(forceDirection * accel, ForceMode.Acceleration);
         }
     }
 }
