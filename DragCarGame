@@ -37,6 +37,7 @@ public class DragCarGame : MonoBehaviour
         {
             raceStarted = false;
             Debug.Log("PLAYER WINS!");
+            return;
         }
 
         if (enemyDistance < 5f)
@@ -86,10 +87,20 @@ public class Car : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        if (rb == null)
+        {
+            Debug.LogError("Rigidbody component missing on car: " + gameObject.name + ". Please add a Rigidbody component.");
+        }
     }
 
     public void InstallPart(Part part)
     {
+        if (part == null)
+        {
+            Debug.LogWarning("Attempted to install null part");
+            return;
+        }
+
         installedParts.Add(part);
 
         stats.horsepower += part.horsepowerBonus;
@@ -102,6 +113,8 @@ public class Car : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (rb == null) return;
+
         float accel = stats.GetAcceleration();
         float topSpeed = stats.GetTopSpeed();
 
