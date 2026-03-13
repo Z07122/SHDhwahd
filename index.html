@@ -1,416 +1,334 @@
 <!DOCTYPE html>
+
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Drag Racing Builder</title>
+<title>Drag Racing V3</title>
 
 <style>
+
 body{
-font-family:Arial;
-background:#111;
-color:white;
 margin:0;
+font-family:Arial;
+background:#f6a623;
 text-align:center;
 }
 
-header{
-background:#222;
-padding:10px;
-font-size:24px;
-}
+/* screens */
 
-.container{
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-gap:20px;
-padding:20px;
-}
+.screen{display:none;padding:20px}
+.active{display:block}
 
-.panel{
-background:#1c1c1c;
-padding:15px;
-border-radius:10px;
-width:300px;
-}
+/* menu buttons */
 
-button{
-padding:10px;
-margin:5px;
-border:none;
-border-radius:6px;
-background:#ff6a00;
+.menuBtn{
+background:#e53935;
 color:white;
+border:none;
+padding:20px;
+width:260px;
+font-size:22px;
+margin:10px;
+border-radius:30px;
 font-weight:bold;
 }
 
-button:hover{
-background:#ff8c2f;
+.blue{background:#3498db}
+.green{background:#2ecc71}
+.gray{background:#9e9e9e}
+
+/* track */
+
+.track{
+height:220px;
+background:#ddd;
+border-top:6px solid #999;
+border-bottom:6px solid #999;
+margin-top:20px;
+position:relative;
+overflow:hidden;
 }
 
-img{
-width:100%;
+.car{
+position:absolute;
+font-size:60px;
+left:20px;
+}
+
+#player{top:40px}
+#enemy{top:120px}
+
+/* traffic light */
+
+.light{
+background:#333;
+width:70px;
+padding:10px;
 border-radius:10px;
+margin:auto;
 }
 
-.car-list{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:10px;
+.light div{
+width:40px;
+height:40px;
+border-radius:50%;
+margin:10px auto;
+background:#111;
 }
 
-.slider{
-width:100%;
-}
+.red{background:red}
+.yellow{background:yellow}
+.greenLight{background:#0f0}
 
-.money{
-font-size:20px;
-color:#00ff7b;
-}
+/* HUD */
 
-.shortcutInfo{
-margin:10px;
-color:#bbb;
-}
-
-.upgradeLevels{
-margin-top:10px;
-text-align:left;
-line-height:1.8;
-}
-
-.creatorOverlay{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.75);
-display:none;
-align-items:center;
+.hud{
+display:flex;
 justify-content:center;
-z-index:999;
+gap:40px;
+margin-top:20px;
 }
 
-.creatorOverlay.active{
-display:flex;
+.bar{
+width:200px;
+height:20px;
+background:#555;
+border-radius:10px;
+overflow:hidden;
 }
 
-.creatorPanel{
-background:#1c1c1c;
-padding:20px;
-border-radius:12px;
-width:min(90vw,420px);
-text-align:left;
-border:1px solid #444;
-}
-
-.creatorPanel h3{
-margin-top:0;
-text-align:center;
-}
-
-.creatorPanel label{
-display:block;
-margin-top:10px;
-}
-
-.creatorPanel input{
+.fill{
+height:100%;
+background:#8e44ad;
 width:100%;
-padding:8px;
-margin-top:4px;
-border-radius:6px;
-border:1px solid #555;
-background:#2a2a2a;
-color:#fff;
-box-sizing:border-box;
 }
 
-.creatorActions{
-margin-top:15px;
-display:flex;
-gap:10px;
-justify-content:flex-end;
+.speed{
+font-size:26px;
 }
 
-@media(max-width:700px){
-.container{
-flex-direction:column;
-align-items:center;
+.gear{
+font-size:24px;
 }
+
+.garageCar{
+font-size:70px;
 }
+
 </style>
+
 </head>
 
 <body>
 
-<header>🏁 Drag Racing Builder</header>
+<div>💰 $<span id="money">50000</span></div>
 
-<div class="money">Pengar: $<span id="money"></span></div>
-<div class="shortcutInfo">Skaparläge: tryck <strong>Ctrl + Alt + L</strong> för att ändra pengar och alla uppgraderingar.</div>
+<!-- MENU -->
 
-<div class="container">
+<div id="menu" class="screen active">
 
-<div class="panel">
-
-<h3>Välj svårighet</h3>
-<input type="range" min="1" max="100" value="50" class="slider" id="difficulty">
-<p id="diffText">50</p>
-
-<h3>Distans</h3>
-<input type="range" min="100" max="10000" value="1000" class="slider" id="distance">
-<p id="distText">1000 m</p>
-
-<button onclick="startRace()">STARTA RACE</button>
+<button class="menuBtn" onclick="openRace()">RACE</button><br> <button class="menuBtn">RACE ONLINE</button><br> <button class="menuBtn gray" onclick="openGarage()">GARAGE</button><br> <button class="menuBtn green">CHALLENGES</button><br> <button class="menuBtn blue">TUTORIAL</button>
 
 </div>
 
-<div class="panel">
+<!-- SETUP -->
 
-<h3>Din bil</h3>
+<div id="setup" class="screen">
 
-<img id="carImage" src="https://images.unsplash.com/photo-1503376780353-7e6692767b70">
+<h2>Race Setup</h2>
 
-<p id="carName">Starter Car</p>
+<p>Race Length</p>
+<input type="range" min="100" max="10000" value="1000" id="length">
 
-</div>
+<p>Difficulty</p>
+<input type="range" min="1" max="100" value="20" id="difficulty">
 
-<div class="panel">
+<br><br>
 
-<h3>Köp bilar</h3>
-
-<div class="car-list" id="carShop"></div>
-
-</div>
-
-<div class="panel">
-
-<h3>Uppgraderingar</h3>
-
-<button onclick="upgrade('engine')">Motor</button>
-<button onclick="upgrade('body')">Body kit</button>
-<button onclick="upgrade('wing')">Wing</button>
-<button onclick="upgrade('rims')">Fälgar</button>
-<button onclick="upgrade('tires')">Däck</button>
-
-<div class="upgradeLevels">
-<div>Motor nivå: <span id="engineLevel">1</span></div>
-<div>Body kit nivå: <span id="bodyLevel">1</span></div>
-<div>Wing nivå: <span id="wingLevel">1</span></div>
-<div>Fälgar nivå: <span id="rimsLevel">1</span></div>
-<div>Däck nivå: <span id="tiresLevel">1</span></div>
-</div>
+<button class="menuBtn" onclick="startLights()">START RACE</button> <button class="menuBtn gray" onclick="showMenu()">MENU</button>
 
 </div>
 
+<!-- RACE -->
+
+<div id="race" class="screen">
+
+<div class="light">
+<div id="red"></div>
+<div id="yellow"></div>
+<div id="green"></div>
 </div>
 
-<div id="creatorOverlay" class="creatorOverlay">
-<div class="creatorPanel">
-<h3>Skaparläge</h3>
-<p>Ändra pengar och uppgraderingar direkt utan att tävla.</p>
+<div class="track">
 
-<label for="creatorMoney">Pengar</label>
-<input id="creatorMoney" type="number" min="0" step="100">
+<div id="player" class="car">🚗</div>
+<div id="enemy" class="car">🚙</div>
 
-<label for="creatorEngine">Motor nivå</label>
-<input id="creatorEngine" type="number" min="1" step="1">
+</div>
 
-<label for="creatorBody">Body kit nivå</label>
-<input id="creatorBody" type="number" min="1" step="1">
+<div class="hud">
 
-<label for="creatorWing">Wing nivå</label>
-<input id="creatorWing" type="number" min="1" step="1">
-
-<label for="creatorRims">Fälgar nivå</label>
-<input id="creatorRims" type="number" min="1" step="1">
-
-<label for="creatorTires">Däck nivå</label>
-<input id="creatorTires" type="number" min="1" step="1">
-
-<div class="creatorActions">
-<button onclick="closeCreatorPanel()">Stäng</button>
-<button onclick="applyCreatorChanges()">Spara</button>
+<div>
+<p>NITRO</p>
+<div class="bar">
+<div id="nitro" class="fill"></div>
 </div>
 </div>
+
+<div class="speed">
+Speed: <span id="speed">0</span>
+</div>
+
+<div class="gear">
+Gear: <span id="gear">1</span>
+</div>
+
+</div>
+
+<br>
+
+<button class="menuBtn" onclick="accelerate()">PEDAL</button> <button class="menuBtn blue" onclick="shift()">SHIFT</button> <button class="menuBtn gray" onclick="showMenu()">MENU</button>
+
+</div>
+
+<!-- GARAGE -->
+
+<div id="garage" class="screen">
+
+<h2>Garage</h2>
+
+<div class="garageCar" id="garageCar">🚗</div>
+
+<br>
+
+<button onclick="prevCar()">⬅</button> <button onclick="nextCar()">➡</button>
+
+<br><br>
+
+<button class="menuBtn gray" onclick="showMenu()">MENU</button>
+
 </div>
 
 <script>
 
-let money = 50000;
+let money=50000
 
-let cars = [
-{name:"Starter",price:0,img:"https://images.unsplash.com/photo-1503376780353-7e6692767b70"},
-{name:"Street Racer",price:10000,img:"https://images.unsplash.com/photo-1511919884226-fd3cad34687c"},
-{name:"Turbo Coupe",price:20000,img:"https://images.unsplash.com/photo-1502877338535-766e1452684a"},
-{name:"Drag Beast",price:30000,img:"https://images.unsplash.com/photo-1503736334956-4c8f8e92946d"},
-{name:"Nitro GT",price:40000,img:"https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98"},
-{name:"V8 Monster",price:60000,img:"https://images.unsplash.com/photo-1503376780353-7e6692767b70"},
-{name:"Hyper Racer",price:80000,img:"https://images.unsplash.com/photo-1493238792000-8113da705763"},
-{name:"Track King",price:100000,img:"https://images.unsplash.com/photo-1503736334956-4c8f8e92946d"},
-{name:"Carbon Drag",price:150000,img:"https://images.unsplash.com/photo-1502877338535-766e1452684a"},
-{name:"Ultimate Racer",price:200000,img:"https://images.unsplash.com/photo-1511919884226-fd3cad34687c"}
-]
+let cars=["🚗","🚙","🚘","🚖","🚕","🚓","🚔","🏎️","🚐","🚑"]
 
-let upgrades={
-engine:1,
-body:1,
-wing:1,
-rims:1,
-tires:1
-}
-
-let owned=[0]
 let currentCar=0
 
-function updateMoney(){
+let pos1=20
+let pos2=20
+let speed=0
+let nitro=100
+let gear=1
+
+/* screen control */
+
+function show(screen){
+
+document.querySelectorAll(".screen")
+.forEach(s=>s.classList.remove("active"))
+
+document.getElementById(screen).classList.add("active")
+
+}
+
+function showMenu(){show("menu")}
+function openRace(){show("setup")}
+function openGarage(){show("garage")}
+
+/* garage */
+
+function nextCar(){
+currentCar=(currentCar+1)%cars.length
+updateCar()
+}
+
+function prevCar(){
+currentCar=(currentCar-1+cars.length)%cars.length
+updateCar()
+}
+
+function updateCar(){
+document.getElementById("garageCar").innerText=cars[currentCar]
+}
+
+/* start lights */
+
+function startLights(){
+
+show("race")
+
+document.getElementById("red").className="red"
+
+setTimeout(()=>{
+
+document.getElementById("yellow").className="yellow"
+
+},1000)
+
+setTimeout(()=>{
+
+document.getElementById("green").className="greenLight"
+
+},2000)
+
+}
+
+/* race */
+
+function accelerate(){
+
+speed+=gear*2
+
+pos1+=speed+Math.random()*10
+pos2+=Math.random()*15
+
+nitro-=3
+
+if(nitro<0) nitro=0
+
+document.getElementById("player").style.left=pos1+"px"
+document.getElementById("enemy").style.left=pos2+"px"
+
+document.getElementById("speed").innerText=Math.floor(speed)
+
+document.getElementById("nitro").style.width=nitro+"%"
+
+if(pos1>900||pos2>900){
+
+if(pos1>pos2){
+
+money+=5000
+alert("Du vann! +5000$")
+
+}else{
+
+alert("Du förlorade")
+
+}
+
 document.getElementById("money").innerText=money
-}
-
-function updateUpgradeLevels(){
-document.getElementById("engineLevel").innerText=upgrades.engine
-document.getElementById("bodyLevel").innerText=upgrades.body
-document.getElementById("wingLevel").innerText=upgrades.wing
-document.getElementById("rimsLevel").innerText=upgrades.rims
-document.getElementById("tiresLevel").innerText=upgrades.tires
-}
-
-function buildShop(){
-
-let shop=document.getElementById("carShop")
-
-cars.forEach((car,i)=>{
-
-let btn=document.createElement("button")
-btn.innerText=car.name+" $"+car.price
-
-btn.onclick=()=>buyCar(i)
-
-shop.appendChild(btn)
-
-})
-
-}
-
-function buyCar(id){
-
-let car=cars[id]
-
-if(money>=car.price){
-
-money-=car.price
-owned.push(id)
-
-selectCar(id)
-
-updateMoney()
-
-}else{
-
-alert("Inte tillräckligt pengar!")
+showMenu()
 
 }
 
 }
 
-function selectCar(id){
+/* shifting */
 
-currentCar=id
+function shift(){
 
-document.getElementById("carImage").src=cars[id].img
-document.getElementById("carName").innerText=cars[id].name
+if(gear<5){
 
-}
-
-function upgrade(type){
-
-if(money>=5000){
-
-money-=5000
-upgrades[type]++
-updateMoney()
-updateUpgradeLevels()
-alert(type+" uppgraderad till nivå "+upgrades[type]+"!")
-
-}else{
-
-alert("Inte tillräckligt pengar!")
+gear++
+document.getElementById("gear").innerText=gear
 
 }
 
 }
-
-function startRace(){
-
-let diff=document.getElementById("difficulty").value
-let dist=document.getElementById("distance").value
-
-let winChance=100-diff+Math.random()*50
-
-if(winChance>50){
-
-let reward=Math.floor(dist/5)
-money+=reward
-
-alert("Du vann! +" + reward + "$")
-
-}else{
-
-alert("Du förlorade racet!")
-
-}
-
-updateMoney()
-
-}
-
-function openCreatorPanel(){
-document.getElementById("creatorMoney").value=money
-document.getElementById("creatorEngine").value=upgrades.engine
-document.getElementById("creatorBody").value=upgrades.body
-document.getElementById("creatorWing").value=upgrades.wing
-document.getElementById("creatorRims").value=upgrades.rims
-document.getElementById("creatorTires").value=upgrades.tires
-document.getElementById("creatorOverlay").classList.add("active")
-}
-
-function closeCreatorPanel(){
-document.getElementById("creatorOverlay").classList.remove("active")
-}
-
-function applyCreatorChanges(){
-money=Math.max(0,Math.floor(Number(document.getElementById("creatorMoney").value)||0))
-upgrades.engine=Math.max(1,Math.floor(Number(document.getElementById("creatorEngine").value)||1))
-upgrades.body=Math.max(1,Math.floor(Number(document.getElementById("creatorBody").value)||1))
-upgrades.wing=Math.max(1,Math.floor(Number(document.getElementById("creatorWing").value)||1))
-upgrades.rims=Math.max(1,Math.floor(Number(document.getElementById("creatorRims").value)||1))
-upgrades.tires=Math.max(1,Math.floor(Number(document.getElementById("creatorTires").value)||1))
-
-updateMoney()
-updateUpgradeLevels()
-closeCreatorPanel()
-}
-
-document.addEventListener("keydown",(e)=>{
-if(e.ctrlKey&&e.altKey&&e.key.toLowerCase()==="l"){
-e.preventDefault()
-openCreatorPanel()
-}
-
-if(e.key==="Escape"){
-closeCreatorPanel()
-}
-})
-
-document.getElementById("difficulty").oninput=(e)=>{
-document.getElementById("diffText").innerText=e.target.value
-}
-
-document.getElementById("distance").oninput=(e)=>{
-document.getElementById("distText").innerText=e.target.value+" m"
-}
-
-updateMoney()
-updateUpgradeLevels()
-buildShop()
 
 </script>
 
