@@ -1,180 +1,325 @@
-using UnityEngine;
-using System.Collections.Generic;
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drag Car Game (GitHub Pages)</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f1220;
+      --panel: #171b2f;
+      --accent: #5ad1ff;
+      --good: #50f3a0;
+      --bad: #ff7575;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1e2340, var(--bg));
+      color: #eff3ff;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
+    .app {
+      width: min(920px, 100%);
+      background: rgba(23, 27, 47, 0.88);
+      border: 1px solid #2e355c;
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 .75rem; font-size: 1.25rem; }
+    .hud {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: .5rem;
+      align-items: center;
+      margin-bottom: .75rem;
+    }
+    #status { font-weight: 600; }
+    .controls { display: flex; flex-wrap: wrap; gap: .5rem; }
+    button {
+      border: 1px solid #3a4373;
+      background: #263061;
+      color: #eff3ff;
+      border-radius: 10px;
+      padding: .5rem .75rem;
+      cursor: pointer;
+      transition: transform .08s ease, filter .2s ease;
+    }
+    button:hover { filter: brightness(1.15); }
+    button:active { transform: translateY(1px); }
+    #track {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: linear-gradient(#282828, #202020);
+      border-radius: 12px;
+      border: 1px solid #3a3a3a;
+    }
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: .75rem;
+      margin-top: .75rem;
+      font-size: .95rem;
+    }
+    .panel {
+      padding: .6rem;
+      background: #1b2140;
+      border-radius: 10px;
+      border: 1px solid #303a69;
+    }
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
+    .hint { opacity: .85; margin-top: .25rem; }
+    code { background: #101427; border-radius: 6px; padding: .1rem .35rem; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>Drag Car Game — Web Version</h1>
+    <div class="hud">
+      <div id="status">Press SPACE or Start Race</div>
+      <div class="controls">
+        <button id="startBtn">Start Race</button>
+        <button id="turboBtn">Install Turbo (+HP)</button>
+        <button id="tiresBtn">Install Tires (+Traction)</button>
+        <button id="wingBtn">Install Wing (+Aero)</button>
+      </div>
+    </div>
+    <canvas id="track" width="880" height="320" aria-label="drag-race track"></canvas>
+    <section class="legend">
+      <div class="panel" id="playerStats"></div>
+      <div class="panel" id="enemyStats"></div>
+      <div class="panel">
+        <strong>Controls</strong>
+        <div class="hint">Press <code>SPACE</code> to start a race.</div>
+        <div class="hint">Race auto-resets after 3s like the Unity code.</div>
+      </div>
+    </section>
+  </main>
 
-public class DragCarGame : MonoBehaviour
-{
-    public Car playerCar;
-    public Car enemyCar;
-    public Transform finishLine;
-    public float finishLineRadius = 5f; // Made configurable
-    public float raceResetDelay = 3f;
-
-    private bool raceStarted = false;
-    private bool raceFinished = false;
-
-    void Start()
-    {
-        ValidateReferences();
+  <script>
+    class CarStats {
+      constructor(horsepower = 200, weight = 1200, traction = 1, aerodynamics = 1) {
+        this.horsepower = horsepower;
+        this.weight = weight;
+        this.traction = traction;
+        this.aerodynamics = aerodynamics;
+      }
+      getAcceleration() { return (this.horsepower / this.weight) * this.traction * 50; }
+      getTopSpeed() { return this.horsepower * this.aerodynamics * 0.2; }
     }
 
-    void ValidateReferences()
-    {
-        if (playerCar == null || enemyCar == null || finishLine == null)
-        {
-            Debug.LogError("DragCarGame: Missing required references!");
+    class Part {
+      constructor(partName, horsepowerBonus = 0, weightBonus = 0, tractionBonus = 0, aeroBonus = 0) {
+        this.partName = partName;
+        this.horsepowerBonus = horsepowerBonus;
+        this.weightBonus = weightBonus;
+        this.tractionBonus = tractionBonus;
+        this.aeroBonus = aeroBonus;
+      }
+    }
+
+    class Car {
+      constructor(name, color, laneY) {
+        this.name = name;
+        this.color = color;
+        this.laneY = laneY;
+        this.stats = new CarStats();
+        this.installedParts = [];
+        this.aiEnabled = false;
+        this.resetCar();
+      }
+      resetCar() {
+        this.x = DragCarGame.START_X;
+        this.velocity = 0;
+      }
+      enableAI(enable) { this.aiEnabled = enable; }
+      installPart(part) {
+        if (!part) return;
+        this.installedParts.push(part);
+        this.stats.horsepower += part.horsepowerBonus;
+        this.stats.weight += part.weightBonus;
+        this.stats.traction += part.tractionBonus;
+        this.stats.aerodynamics += part.aeroBonus;
+      }
+      step(dt) {
+        const accel = this.stats.getAcceleration();
+        const topSpeed = this.stats.getTopSpeed();
+        this.velocity = Math.min(topSpeed, this.velocity + accel * dt);
+        this.x += this.velocity * dt * 2.2; // simple world scaling
+      }
+    }
+
+    class DragCarGame {
+      static START_X = 70;
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.finishLineX = canvas.width - 90;
+        this.finishLineRadius = 10;
+        this.raceResetDelay = 3000;
+
+        this.playerCar = new Car('PLAYER', '#50f3a0', 115);
+        this.enemyCar = new Car('ENEMY', '#ff7575', 215);
+
+        this.raceStarted = false;
+        this.raceFinished = false;
+        this.lastTime = performance.now();
+
+        this.statusEl = document.getElementById('status');
+        this.playerStatsEl = document.getElementById('playerStats');
+        this.enemyStatsEl = document.getElementById('enemyStats');
+
+        this.bindUI();
+        this.loop = this.loop.bind(this);
+        requestAnimationFrame(this.loop);
+      }
+
+      bindUI() {
+        const start = () => {
+          if (!this.raceStarted && !this.raceFinished) this.startRace();
+        };
+        document.getElementById('startBtn').addEventListener('click', start);
+        document.addEventListener('keydown', (e) => {
+          if (e.code === 'Space') {
+            e.preventDefault();
+            start();
+          }
+        });
+
+        document.getElementById('turboBtn').addEventListener('click', () => {
+          this.playerCar.installPart(new Part('Turbo', 45, 10, 0, 0.03));
+          this.updateStats();
+        });
+        document.getElementById('tiresBtn').addEventListener('click', () => {
+          this.playerCar.installPart(new Part('Tires', 0, 0, 0.2, 0));
+          this.updateStats();
+        });
+        document.getElementById('wingBtn').addEventListener('click', () => {
+          this.playerCar.installPart(new Part('Wing', 0, 4, 0, 0.12));
+          this.updateStats();
+        });
+
+        this.updateStats();
+      }
+
+      startRace() {
+        this.raceStarted = true;
+        this.raceFinished = false;
+        this.playerCar.resetCar();
+        this.enemyCar.resetCar();
+        this.enemyCar.enableAI(true);
+
+        // Give enemy small random variance each race.
+        this.enemyCar.stats.horsepower = 190 + Math.random() * 35;
+        this.enemyCar.stats.traction = 0.92 + Math.random() * 0.25;
+
+        this.setStatus('Race Started!', 'good');
+      }
+
+      checkWinner() {
+        if (this.raceFinished) return;
+        const playerDistance = Math.abs(this.finishLineX - this.playerCar.x);
+        const enemyDistance = Math.abs(this.finishLineX - this.enemyCar.x);
+
+        if (playerDistance < this.finishLineRadius) return this.decideWinner('PLAYER');
+        if (enemyDistance < this.finishLineRadius) return this.decideWinner('ENEMY');
+      }
+
+      decideWinner(winner) {
+        this.raceStarted = false;
+        this.raceFinished = true;
+        this.enemyCar.enableAI(false);
+        this.setStatus(`${winner} WINS!`, winner === 'PLAYER' ? 'good' : 'bad');
+        setTimeout(() => this.resetRace(), this.raceResetDelay);
+      }
+
+      resetRace() {
+        this.raceFinished = false;
+        this.setStatus('Press SPACE to start a new race');
+      }
+
+      setStatus(message, className = '') {
+        this.statusEl.className = className;
+        this.statusEl.textContent = message;
+      }
+
+      updateStats() {
+        const p = this.playerCar.stats;
+        const e = this.enemyCar.stats;
+        this.playerStatsEl.innerHTML = `<strong>Player Stats</strong><br>
+          HP: ${p.horsepower.toFixed(1)} | Weight: ${p.weight.toFixed(1)}<br>
+          Traction: ${p.traction.toFixed(2)} | Aero: ${p.aerodynamics.toFixed(2)}<br>
+          Accel: ${p.getAcceleration().toFixed(2)} | Top: ${p.getTopSpeed().toFixed(2)}`;
+        this.enemyStatsEl.innerHTML = `<strong>Enemy Stats</strong><br>
+          HP: ${e.horsepower.toFixed(1)} | Weight: ${e.weight.toFixed(1)}<br>
+          Traction: ${e.traction.toFixed(2)} | Aero: ${e.aerodynamics.toFixed(2)}<br>
+          Accel: ${e.getAcceleration().toFixed(2)} | Top: ${e.getTopSpeed().toFixed(2)}`;
+      }
+
+      drawTrack() {
+        const c = this.ctx;
+        c.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        c.fillStyle = '#262626';
+        c.fillRect(0, 60, this.canvas.width, 200);
+
+        c.strokeStyle = '#767676';
+        c.setLineDash([14, 12]);
+        c.beginPath();
+        c.moveTo(0, 160);
+        c.lineTo(this.canvas.width, 160);
+        c.stroke();
+        c.setLineDash([]);
+
+        c.fillStyle = '#fff';
+        c.fillRect(this.finishLineX, 60, 6, 200);
+
+        for (let i = 0; i < 8; i++) {
+          c.fillStyle = i % 2 ? '#111' : '#eee';
+          c.fillRect(this.finishLineX + 6, 60 + i * 25, 16, 25);
         }
-    }
+      }
 
-    void Update()
-    {
-        if (!raceStarted && !raceFinished && Input.GetKeyDown(KeyCode.Space))
-        {
-            StartRace();
+      drawCar(car) {
+        const c = this.ctx;
+        c.fillStyle = car.color;
+        c.fillRect(car.x, car.laneY - 14, 50, 28);
+        c.fillStyle = '#0d0d0d';
+        c.fillRect(car.x + 8, car.laneY - 20, 16, 8);
+        c.fillRect(car.x + 30, car.laneY - 20, 12, 8);
+        c.beginPath();
+        c.arc(car.x + 12, car.laneY + 14, 6, 0, Math.PI * 2);
+        c.arc(car.x + 38, car.laneY + 14, 6, 0, Math.PI * 2);
+        c.fill();
+      }
+
+      loop(now) {
+        const dt = Math.min(0.032, (now - this.lastTime) / 1000);
+        this.lastTime = now;
+
+        if (this.raceStarted) {
+          this.playerCar.step(dt);
+          this.enemyCar.step(dt);
+          this.checkWinner();
+          this.updateStats();
         }
 
-        if (raceStarted)
-        {
-            CheckWinner();
-        }
+        this.drawTrack();
+        this.drawCar(this.playerCar);
+        this.drawCar(this.enemyCar);
+        requestAnimationFrame(this.loop);
+      }
     }
 
-    void StartRace()
-    {
-        raceStarted = true;
-        raceFinished = false;
-        playerCar.ResetCar();
-        enemyCar.ResetCar();
-        enemyCar.EnableAI(true); // Start AI
-        Debug.Log("Race Started!");
-    }
-
-    void CheckWinner()
-    {
-        if (raceFinished) return;
-
-        float playerDistance = Vector3.Distance(playerCar.transform.position, finishLine.position);
-        float enemyDistance = Vector3.Distance(enemyCar.transform.position, finishLine.position);
-
-        if (playerDistance < finishLineRadius)
-        {
-            DecideWinner("PLAYER");
-            return;
-        }
-
-        if (enemyDistance < finishLineRadius)
-        {
-            DecideWinner("ENEMY");
-        }
-    }
-
-    void DecideWinner(string winner)
-    {
-        raceStarted = false;
-        raceFinished = true;
-        enemyCar.EnableAI(false);
-        Debug.Log(winner + " WINS!");
-        Invoke(nameof(ResetRace), raceResetDelay);
-    }
-
-    void ResetRace()
-    {
-        raceFinished = false;
-        Debug.Log("Press SPACE to start a new race");
-    }
-}
-
-[System.Serializable]
-public class CarStats
-{
-    public float horsepower = 200f;
-    public float weight = 1200f;
-    public float traction = 1f;
-    public float aerodynamics = 1f;
-
-    public float GetAcceleration()
-    {
-        return (horsepower / weight) * traction * 50f;
-    }
-
-    public float GetTopSpeed()
-    {
-        return horsepower * aerodynamics * 0.2f;
-    }
-}
-
-public class Part : MonoBehaviour
-{
-    public string partName;
-    public float horsepowerBonus;
-    public float weightBonus;
-    public float tractionBonus;
-    public float aeroBonus;
-}
-
-public class Car : MonoBehaviour
-{
-    public CarStats stats = new CarStats();
-    public List<Part> installedParts = new List<Part>();
-    
-    private Rigidbody rb;
-    private Vector3 startPosition;
-    private Quaternion startRotation;
-    private bool aiEnabled = false;
-
-    void Start()
-    {
-        rb = GetComponent<Rigidbody>();
-        if (rb == null)
-        {
-            Debug.LogError("Rigidbody component missing on car: " + gameObject.name);
-        }
-
-        startPosition = transform.position;
-        startRotation = transform.rotation;
-    }
-
-    public void ResetCar()
-    {
-        transform.position = startPosition;
-        transform.rotation = startRotation;
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-    }
-
-    public void EnableAI(bool enable)
-    {
-        aiEnabled = enable;
-    }
-
-    public void InstallPart(Part part)
-    {
-        if (part == null)
-        {
-            Debug.LogWarning("Attempted to install null part");
-            return;
-        }
-
-        installedParts.Add(part);
-        stats.horsepower += part.horsepowerBonus;
-        stats.weight += part.weightBonus;
-        stats.traction += part.tractionBonus;
-        stats.aerodynamics += part.aeroBonus;
-
-        Debug.Log("Installed: " + part.partName);
-    }
-
-    void FixedUpdate()
-    {
-        if (rb == null) return;
-
-        float accel = stats.GetAcceleration();
-        float topSpeed = stats.GetTopSpeed();
-
-        // Proper speed clamping
-        if (rb.velocity.magnitude < topSpeed)
-        {
-            Vector3 forceDirection = aiEnabled ? transform.forward : transform.forward;
-            rb.AddForce(forceDirection * accel, ForceMode.Acceleration);
-        }
-    }
-}
+    new DragCarGame(document.getElementById('track'));
+  </script>
+</body>
+</html>
