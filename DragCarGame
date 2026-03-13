@@ -1,1 +1,113 @@
+using UnityEngine;
+using System.Collections.Generic;
 
+public class DragCarGame : MonoBehaviour
+{
+    public Car playerCar;
+    public Car enemyCar;
+    public Transform finishLine;
+
+    private bool raceStarted = false;
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            StartRace();
+        }
+
+        if (raceStarted)
+        {
+            CheckWinner();
+        }
+    }
+
+    void StartRace()
+    {
+        raceStarted = true;
+        Debug.Log("Race Started!");
+    }
+
+    void CheckWinner()
+    {
+        float playerDistance = Vector3.Distance(playerCar.transform.position, finishLine.position);
+        float enemyDistance = Vector3.Distance(enemyCar.transform.position, finishLine.position);
+
+        if (playerDistance < 5f)
+        {
+            raceStarted = false;
+            Debug.Log("PLAYER WINS!");
+        }
+
+        if (enemyDistance < 5f)
+        {
+            raceStarted = false;
+            Debug.Log("ENEMY WINS!");
+        }
+    }
+}
+
+[System.Serializable]
+public class CarStats
+{
+    public float horsepower = 200f;
+    public float weight = 1200f;
+    public float traction = 1f;
+    public float aerodynamics = 1f;
+
+    public float GetAcceleration()
+    {
+        return (horsepower / weight) * traction * 50f;
+    }
+
+    public float GetTopSpeed()
+    {
+        return horsepower * aerodynamics * 0.2f;
+    }
+}
+
+public class Part : MonoBehaviour
+{
+    public string partName;
+
+    public float horsepowerBonus;
+    public float weightBonus;
+    public float tractionBonus;
+    public float aeroBonus;
+}
+
+public class Car : MonoBehaviour
+{
+    public CarStats stats = new CarStats();
+    public List<Part> installedParts = new List<Part>();
+
+    private Rigidbody rb;
+
+    void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+    }
+
+    public void InstallPart(Part part)
+    {
+        installedParts.Add(part);
+
+        stats.horsepower += part.horsepowerBonus;
+        stats.weight += part.weightBonus;
+        stats.traction += part.tractionBonus;
+        stats.aerodynamics += part.aeroBonus;
+
+        Debug.Log("Installed: " + part.partName);
+    }
+
+    void FixedUpdate()
+    {
+        float accel = stats.GetAcceleration();
+        float topSpeed = stats.GetTopSpeed();
+
+        if (rb.velocity.magnitude < topSpeed)
+        {
+            rb.AddForce(transform.forward * accel);
+        }
+    }
+}
