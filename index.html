@@ -3,104 +3,212 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Drag Car Game (GitHub Pages)</title>
+  <title>Scratch-Style Drag Race (GitHub)</title>
   <style>
     :root {
-      color-scheme: dark;
-      --bg: #0f1220;
-      --panel: #171b2f;
-      --accent: #5ad1ff;
-      --good: #50f3a0;
-      --bad: #ff7575;
+      --sky-1: #84d4ff;
+      --sky-2: #d7f4ff;
+      --road: #444;
+      --road-dark: #2f2f2f;
+      --grass: #48aa46;
+      --panel: #18253f;
+      --panel-2: #22355f;
+      --text: #eff7ff;
+      --money: #ffd765;
+      --good: #57f59a;
+      --bad: #ff8888;
+      --neutral: #9fd8ff;
     }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at top, #1e2340, var(--bg));
-      color: #eff3ff;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       display: grid;
       place-items: center;
+      font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      background: linear-gradient(180deg, var(--sky-2) 0%, var(--sky-1) 40%, #74c1ff 100%);
+      color: var(--text);
       padding: 1rem;
     }
+
     .app {
-      width: min(920px, 100%);
-      background: rgba(23, 27, 47, 0.88);
-      border: 1px solid #2e355c;
-      border-radius: 16px;
-      padding: 1rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      width: min(980px, 100%);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 2px solid #2b3f6c;
+      box-shadow: 0 14px 34px rgba(6, 22, 48, 0.35);
+      background: linear-gradient(180deg, #1f3157 0%, #18253f 100%);
     }
-    h1 { margin: 0 0 .75rem; font-size: 1.25rem; }
-    .hud {
+
+    .top {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #3a558f;
       display: grid;
       grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .top h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      letter-spacing: .2px;
+    }
+
+    .status-wrap {
+      display: flex;
       gap: .5rem;
       align-items: center;
-      margin-bottom: .75rem;
+      flex-wrap: wrap;
     }
-    #status { font-weight: 600; }
-    .controls { display: flex; flex-wrap: wrap; gap: .5rem; }
-    button {
-      border: 1px solid #3a4373;
-      background: #263061;
-      color: #eff3ff;
-      border-radius: 10px;
-      padding: .5rem .75rem;
-      cursor: pointer;
-      transition: transform .08s ease, filter .2s ease;
+
+    #status {
+      font-weight: 700;
+      color: var(--neutral);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid #4462a1;
+      border-radius: 999px;
+      padding: .25rem .65rem;
+      white-space: nowrap;
     }
-    button:hover { filter: brightness(1.15); }
-    button:active { transform: translateY(1px); }
+
+    .good { color: var(--good) !important; }
+    .bad { color: var(--bad) !important; }
+
+    .money {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      background: rgba(255, 216, 102, 0.15);
+      border: 1px solid rgba(255, 216, 102, 0.55);
+      color: var(--money);
+      border-radius: 999px;
+      padding: .25rem .7rem;
+      font-weight: 700;
+    }
+
+    .money input {
+      width: 120px;
+      border: 1px solid rgba(255, 216, 102, 0.65);
+      border-radius: 8px;
+      background: #111a2f;
+      color: var(--money);
+      padding: .2rem .4rem;
+      font-weight: 700;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1.3fr .8fr;
+      gap: .75rem;
+      padding: .75rem;
+    }
+
     #track {
       width: 100%;
       height: auto;
       display: block;
-      background: linear-gradient(#282828, #202020);
-      border-radius: 12px;
-      border: 1px solid #3a3a3a;
+      border-radius: 14px;
+      border: 1px solid #4462a1;
+      background: linear-gradient(#8dd9ff 0%, #b7ebff 38%, #4eb94c 38%, #4eb94c 100%);
     }
-    .legend {
+
+    .side {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: .75rem;
-      margin-top: .75rem;
-      font-size: .95rem;
+      gap: .6rem;
+      align-content: start;
     }
+
     .panel {
+      border: 1px solid #3f5b96;
+      border-radius: 12px;
+      background: var(--panel-2);
       padding: .6rem;
-      background: #1b2140;
-      border-radius: 10px;
-      border: 1px solid #303a69;
+      font-size: .93rem;
+      line-height: 1.35;
     }
-    .good { color: var(--good); }
-    .bad { color: var(--bad); }
-    .hint { opacity: .85; margin-top: .25rem; }
-    code { background: #101427; border-radius: 6px; padding: .1rem .35rem; }
+
+    .panel strong { color: #d9ebff; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .45rem;
+    }
+
+    button {
+      border: 1px solid #5f7fca;
+      color: #f4f8ff;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #5273be 0%, #3f5c9f 100%);
+      font-weight: 700;
+      cursor: pointer;
+      padding: .5rem;
+    }
+
+    button:hover { filter: brightness(1.1); }
+    button:active { transform: translateY(1px); }
+
+    .controls button:first-child {
+      grid-column: 1 / -1;
+      background: linear-gradient(180deg, #56ce7f 0%, #33a85b 100%);
+      border-color: #6df59d;
+      color: #03220f;
+    }
+
+    .hint {
+      opacity: .92;
+      font-size: .84rem;
+      margin-top: .35rem;
+    }
+
+    code {
+      background: #101b34;
+      border: 1px solid #344f87;
+      border-radius: 6px;
+      padding: .08rem .35rem;
+    }
+
+    @media (max-width: 860px) {
+      .content { grid-template-columns: 1fr; }
+      .controls { grid-template-columns: 1fr; }
+      .controls button:first-child { grid-column: auto; }
+    }
   </style>
 </head>
 <body>
   <main class="app">
-    <h1>Drag Car Game — Web Version</h1>
-    <div class="hud">
-      <div id="status">Press SPACE or Start Race</div>
-      <div class="controls">
-        <button id="startBtn">Start Race</button>
-        <button id="turboBtn">Install Turbo (+HP)</button>
-        <button id="tiresBtn">Install Tires (+Traction)</button>
-        <button id="wingBtn">Install Wing (+Aero)</button>
+    <header class="top">
+      <h1>Scratch-Style Drag Race — GitHub Version</h1>
+      <div class="status-wrap">
+        <div id="status">Press SPACE or Start Race</div>
+        <label class="money">💰 Cash
+          <input id="cashInput" type="number" value="1000" min="0" step="1" aria-label="cash amount" />
+        </label>
       </div>
-    </div>
-    <canvas id="track" width="880" height="320" aria-label="drag-race track"></canvas>
-    <section class="legend">
-      <div class="panel" id="playerStats"></div>
-      <div class="panel" id="enemyStats"></div>
-      <div class="panel">
-        <strong>Controls</strong>
-        <div class="hint">Press <code>SPACE</code> to start a race.</div>
-        <div class="hint">Race auto-resets after 3s like the Unity code.</div>
-      </div>
+    </header>
+
+    <section class="content">
+      <canvas id="track" width="900" height="380" aria-label="drag-race track"></canvas>
+
+      <aside class="side">
+        <div class="panel">
+          <strong>Race + Shop</strong>
+          <div class="controls">
+            <button id="startBtn">Start Race</button>
+            <button id="turboBtn">Turbo (+HP) - $300</button>
+            <button id="tiresBtn">Tires (+Grip) - $220</button>
+            <button id="wingBtn">Wing (+Aero) - $180</button>
+          </div>
+          <div class="hint">Set your money directly in the <code>Cash</code> box any time.</div>
+          <div class="hint">Win reward: <code>$250</code> • Lose reward: <code>$70</code></div>
+        </div>
+
+        <div class="panel" id="playerStats"></div>
+        <div class="panel" id="enemyStats"></div>
+      </aside>
     </section>
   </main>
 
@@ -112,13 +220,18 @@
         this.traction = traction;
         this.aerodynamics = aerodynamics;
       }
-      getAcceleration() { return (this.horsepower / this.weight) * this.traction * 50; }
-      getTopSpeed() { return this.horsepower * this.aerodynamics * 0.2; }
+      getAcceleration() {
+        return (this.horsepower / this.weight) * this.traction * 52;
+      }
+      getTopSpeed() {
+        return this.horsepower * this.aerodynamics * 0.22;
+      }
     }
 
     class Part {
-      constructor(partName, horsepowerBonus = 0, weightBonus = 0, tractionBonus = 0, aeroBonus = 0) {
+      constructor(partName, cost, horsepowerBonus = 0, weightBonus = 0, tractionBonus = 0, aeroBonus = 0) {
         this.partName = partName;
+        this.cost = cost;
         this.horsepowerBonus = horsepowerBonus;
         this.weightBonus = weightBonus;
         this.tractionBonus = tractionBonus;
@@ -133,16 +246,13 @@
         this.laneY = laneY;
         this.stats = new CarStats();
         this.installedParts = [];
-        this.aiEnabled = false;
         this.resetCar();
       }
       resetCar() {
         this.x = DragCarGame.START_X;
         this.velocity = 0;
       }
-      enableAI(enable) { this.aiEnabled = enable; }
       installPart(part) {
-        if (!part) return;
         this.installedParts.push(part);
         this.stats.horsepower += part.horsepowerBonus;
         this.stats.weight += part.weightBonus;
@@ -153,39 +263,69 @@
         const accel = this.stats.getAcceleration();
         const topSpeed = this.stats.getTopSpeed();
         this.velocity = Math.min(topSpeed, this.velocity + accel * dt);
-        this.x += this.velocity * dt * 2.2; // simple world scaling
+        this.x += this.velocity * dt * 2.5;
       }
     }
 
     class DragCarGame {
-      static START_X = 70;
+      static START_X = 80;
+
       constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
-        this.finishLineX = canvas.width - 90;
-        this.finishLineRadius = 10;
-        this.raceResetDelay = 3000;
+        this.finishLineX = canvas.width - 100;
+        this.finishRadius = 8;
+        this.raceResetDelay = 2500;
 
-        this.playerCar = new Car('PLAYER', '#50f3a0', 115);
-        this.enemyCar = new Car('ENEMY', '#ff7575', 215);
+        this.playerCar = new Car('PLAYER', '#5ffca0', 220);
+        this.enemyCar = new Car('ENEMY', '#ff7c7c', 290);
 
         this.raceStarted = false;
         this.raceFinished = false;
         this.lastTime = performance.now();
 
+        this.cashInput = document.getElementById('cashInput');
         this.statusEl = document.getElementById('status');
         this.playerStatsEl = document.getElementById('playerStats');
         this.enemyStatsEl = document.getElementById('enemyStats');
 
+        this.parts = {
+          turbo: new Part('Turbo', 300, 45, 10, 0, 0.03),
+          tires: new Part('Tires', 220, 0, 0, 0.22, 0),
+          wing: new Part('Wing', 180, 0, 5, 0, 0.13)
+        };
+
         this.bindUI();
+        this.updateStats();
         this.loop = this.loop.bind(this);
         requestAnimationFrame(this.loop);
       }
 
+      getCash() {
+        return Math.max(0, Number(this.cashInput.value) || 0);
+      }
+
+      setCash(value) {
+        this.cashInput.value = String(Math.max(0, Math.floor(value)));
+      }
+
+      addCash(amount) {
+        this.setCash(this.getCash() + amount);
+      }
+
+      spendCash(amount) {
+        if (this.getCash() < amount) return false;
+        this.setCash(this.getCash() - amount);
+        return true;
+      }
+
       bindUI() {
         const start = () => {
-          if (!this.raceStarted && !this.raceFinished) this.startRace();
+          if (!this.raceStarted && !this.raceFinished) {
+            this.startRace();
+          }
         };
+
         document.getElementById('startBtn').addEventListener('click', start);
         document.addEventListener('keydown', (e) => {
           if (e.code === 'Space') {
@@ -194,19 +334,20 @@
           }
         });
 
-        document.getElementById('turboBtn').addEventListener('click', () => {
-          this.playerCar.installPart(new Part('Turbo', 45, 10, 0, 0.03));
-          this.updateStats();
-        });
-        document.getElementById('tiresBtn').addEventListener('click', () => {
-          this.playerCar.installPart(new Part('Tires', 0, 0, 0.2, 0));
-          this.updateStats();
-        });
-        document.getElementById('wingBtn').addEventListener('click', () => {
-          this.playerCar.installPart(new Part('Wing', 0, 4, 0, 0.12));
-          this.updateStats();
-        });
+        this.cashInput.addEventListener('change', () => this.setCash(this.cashInput.value));
 
+        document.getElementById('turboBtn').addEventListener('click', () => this.buyPart(this.parts.turbo));
+        document.getElementById('tiresBtn').addEventListener('click', () => this.buyPart(this.parts.tires));
+        document.getElementById('wingBtn').addEventListener('click', () => this.buyPart(this.parts.wing));
+      }
+
+      buyPart(part) {
+        if (!this.spendCash(part.cost)) {
+          this.setStatus(`Not enough cash for ${part.partName}`, 'bad');
+          return;
+        }
+        this.playerCar.installPart(part);
+        this.setStatus(`${part.partName} installed!`, 'good');
         this.updateStats();
       }
 
@@ -215,35 +356,41 @@
         this.raceFinished = false;
         this.playerCar.resetCar();
         this.enemyCar.resetCar();
-        this.enemyCar.enableAI(true);
 
-        // Give enemy small random variance each race.
-        this.enemyCar.stats.horsepower = 190 + Math.random() * 35;
-        this.enemyCar.stats.traction = 0.92 + Math.random() * 0.25;
+        this.enemyCar.stats.horsepower = 190 + Math.random() * 38;
+        this.enemyCar.stats.traction = 0.94 + Math.random() * 0.25;
+        this.enemyCar.stats.aerodynamics = 0.95 + Math.random() * 0.2;
 
-        this.setStatus('Race Started!', 'good');
+        this.setStatus('Race started!', 'good');
       }
 
       checkWinner() {
         if (this.raceFinished) return;
+
         const playerDistance = Math.abs(this.finishLineX - this.playerCar.x);
         const enemyDistance = Math.abs(this.finishLineX - this.enemyCar.x);
 
-        if (playerDistance < this.finishLineRadius) return this.decideWinner('PLAYER');
-        if (enemyDistance < this.finishLineRadius) return this.decideWinner('ENEMY');
+        if (playerDistance < this.finishRadius) this.finishRace('PLAYER');
+        if (enemyDistance < this.finishRadius) this.finishRace('ENEMY');
       }
 
-      decideWinner(winner) {
-        this.raceStarted = false;
+      finishRace(winner) {
+        if (this.raceFinished) return;
         this.raceFinished = true;
-        this.enemyCar.enableAI(false);
-        this.setStatus(`${winner} WINS!`, winner === 'PLAYER' ? 'good' : 'bad');
-        setTimeout(() => this.resetRace(), this.raceResetDelay);
-      }
+        this.raceStarted = false;
 
-      resetRace() {
-        this.raceFinished = false;
-        this.setStatus('Press SPACE to start a new race');
+        if (winner === 'PLAYER') {
+          this.addCash(250);
+          this.setStatus('PLAYER WINS! +$250', 'good');
+        } else {
+          this.addCash(70);
+          this.setStatus('ENEMY WINS! +$70', 'bad');
+        }
+
+        setTimeout(() => {
+          this.raceFinished = false;
+          this.setStatus('Press SPACE or Start Race');
+        }, this.raceResetDelay);
       }
 
       setStatus(message, className = '') {
@@ -251,54 +398,74 @@
         this.statusEl.textContent = message;
       }
 
-      updateStats() {
-        const p = this.playerCar.stats;
-        const e = this.enemyCar.stats;
-        this.playerStatsEl.innerHTML = `<strong>Player Stats</strong><br>
-          HP: ${p.horsepower.toFixed(1)} | Weight: ${p.weight.toFixed(1)}<br>
-          Traction: ${p.traction.toFixed(2)} | Aero: ${p.aerodynamics.toFixed(2)}<br>
-          Accel: ${p.getAcceleration().toFixed(2)} | Top: ${p.getTopSpeed().toFixed(2)}`;
-        this.enemyStatsEl.innerHTML = `<strong>Enemy Stats</strong><br>
-          HP: ${e.horsepower.toFixed(1)} | Weight: ${e.weight.toFixed(1)}<br>
-          Traction: ${e.traction.toFixed(2)} | Aero: ${e.aerodynamics.toFixed(2)}<br>
-          Accel: ${e.getAcceleration().toFixed(2)} | Top: ${e.getTopSpeed().toFixed(2)}`;
-      }
-
-      drawTrack() {
+      drawBackground() {
         const c = this.ctx;
         c.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        c.fillStyle = '#262626';
-        c.fillRect(0, 60, this.canvas.width, 200);
+        c.fillStyle = '#4eb94c';
+        c.fillRect(0, 145, this.canvas.width, 235);
 
-        c.strokeStyle = '#767676';
-        c.setLineDash([14, 12]);
-        c.beginPath();
-        c.moveTo(0, 160);
-        c.lineTo(this.canvas.width, 160);
-        c.stroke();
+        c.fillStyle = 'rgba(255,255,255,.7)';
+        c.beginPath(); c.arc(130, 54, 26, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(166, 54, 32, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(201, 54, 22, 0, Math.PI * 2); c.fill();
+
+        c.fillStyle = '#5f6a82';
+        c.fillRect(0, 170, this.canvas.width, 150);
+        c.fillStyle = '#3b445b';
+        c.fillRect(0, 235, this.canvas.width, 85);
+
+        c.strokeStyle = '#dfe6f0';
+        c.lineWidth = 3;
+        c.setLineDash([16, 12]);
+        c.beginPath(); c.moveTo(0, 246); c.lineTo(this.canvas.width, 246); c.stroke();
         c.setLineDash([]);
 
-        c.fillStyle = '#fff';
-        c.fillRect(this.finishLineX, 60, 6, 200);
-
-        for (let i = 0; i < 8; i++) {
-          c.fillStyle = i % 2 ? '#111' : '#eee';
-          c.fillRect(this.finishLineX + 6, 60 + i * 25, 16, 25);
+        c.fillStyle = '#ffffff';
+        c.fillRect(this.finishLineX, 170, 7, 150);
+        for (let i = 0; i < 10; i++) {
+          c.fillStyle = i % 2 ? '#111' : '#fff';
+          c.fillRect(this.finishLineX + 7, 170 + i * 15, 15, 15);
         }
+
+        c.fillStyle = '#1f2f57';
+        c.fillRect(16, 160, 66, 170);
+        c.fillStyle = '#ffe37f';
+        c.fillRect(30, 186, 10, 10);
+        c.fillRect(30, 206, 10, 10);
+        c.fillRect(30, 226, 10, 10);
       }
 
       drawCar(car) {
         const c = this.ctx;
+        const y = car.laneY;
+
         c.fillStyle = car.color;
-        c.fillRect(car.x, car.laneY - 14, 50, 28);
-        c.fillStyle = '#0d0d0d';
-        c.fillRect(car.x + 8, car.laneY - 20, 16, 8);
-        c.fillRect(car.x + 30, car.laneY - 20, 12, 8);
-        c.beginPath();
-        c.arc(car.x + 12, car.laneY + 14, 6, 0, Math.PI * 2);
-        c.arc(car.x + 38, car.laneY + 14, 6, 0, Math.PI * 2);
-        c.fill();
+        c.fillRect(car.x, y - 18, 56, 24);
+        c.fillRect(car.x + 16, y - 28, 24, 12);
+
+        c.fillStyle = '#0e1422';
+        c.fillRect(car.x + 21, y - 26, 16, 9);
+
+        c.fillStyle = '#1a1a1a';
+        c.beginPath(); c.arc(car.x + 12, y + 8, 7, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(car.x + 44, y + 8, 7, 0, Math.PI * 2); c.fill();
+      }
+
+      updateStats() {
+        const p = this.playerCar.stats;
+        const e = this.enemyCar.stats;
+
+        this.playerStatsEl.innerHTML = `<strong>Player Stats</strong><br>
+          HP: ${p.horsepower.toFixed(1)} | Weight: ${p.weight.toFixed(1)}<br>
+          Grip: ${p.traction.toFixed(2)} | Aero: ${p.aerodynamics.toFixed(2)}<br>
+          Accel: ${p.getAcceleration().toFixed(2)} | Top: ${p.getTopSpeed().toFixed(2)}<br>
+          Parts: ${this.playerCar.installedParts.length}`;
+
+        this.enemyStatsEl.innerHTML = `<strong>Enemy Stats</strong><br>
+          HP: ${e.horsepower.toFixed(1)} | Weight: ${e.weight.toFixed(1)}<br>
+          Grip: ${e.traction.toFixed(2)} | Aero: ${e.aerodynamics.toFixed(2)}<br>
+          Accel: ${e.getAcceleration().toFixed(2)} | Top: ${e.getTopSpeed().toFixed(2)}`;
       }
 
       loop(now) {
@@ -312,7 +479,7 @@
           this.updateStats();
         }
 
-        this.drawTrack();
+        this.drawBackground();
         this.drawCar(this.playerCar);
         this.drawCar(this.enemyCar);
         requestAnimationFrame(this.loop);
