@@ -69,6 +69,68 @@ font-size:20px;
 color:#00ff7b;
 }
 
+.shortcutInfo{
+margin:10px;
+color:#bbb;
+}
+
+.upgradeLevels{
+margin-top:10px;
+text-align:left;
+line-height:1.8;
+}
+
+.creatorOverlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.75);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:999;
+}
+
+.creatorOverlay.active{
+display:flex;
+}
+
+.creatorPanel{
+background:#1c1c1c;
+padding:20px;
+border-radius:12px;
+width:min(90vw,420px);
+text-align:left;
+border:1px solid #444;
+}
+
+.creatorPanel h3{
+margin-top:0;
+text-align:center;
+}
+
+.creatorPanel label{
+display:block;
+margin-top:10px;
+}
+
+.creatorPanel input{
+width:100%;
+padding:8px;
+margin-top:4px;
+border-radius:6px;
+border:1px solid #555;
+background:#2a2a2a;
+color:#fff;
+box-sizing:border-box;
+}
+
+.creatorActions{
+margin-top:15px;
+display:flex;
+gap:10px;
+justify-content:flex-end;
+}
+
 @media(max-width:700px){
 .container{
 flex-direction:column;
@@ -83,6 +145,7 @@ align-items:center;
 <header>🏁 Drag Racing Builder</header>
 
 <div class="money">Pengar: $<span id="money"></span></div>
+<div class="shortcutInfo">Skaparläge: tryck <strong>Ctrl + Alt + L</strong> för att ändra pengar och alla uppgraderingar.</div>
 
 <div class="container">
 
@@ -128,13 +191,50 @@ align-items:center;
 <button onclick="upgrade('rims')">Fälgar</button>
 <button onclick="upgrade('tires')">Däck</button>
 
+<div class="upgradeLevels">
+<div>Motor nivå: <span id="engineLevel">1</span></div>
+<div>Body kit nivå: <span id="bodyLevel">1</span></div>
+<div>Wing nivå: <span id="wingLevel">1</span></div>
+<div>Fälgar nivå: <span id="rimsLevel">1</span></div>
+<div>Däck nivå: <span id="tiresLevel">1</span></div>
 </div>
 
+</div>
+
+</div>
+
+<div id="creatorOverlay" class="creatorOverlay">
+<div class="creatorPanel">
+<h3>Skaparläge</h3>
+<p>Ändra pengar och uppgraderingar direkt utan att tävla.</p>
+
+<label for="creatorMoney">Pengar</label>
+<input id="creatorMoney" type="number" min="0" step="100">
+
+<label for="creatorEngine">Motor nivå</label>
+<input id="creatorEngine" type="number" min="1" step="1">
+
+<label for="creatorBody">Body kit nivå</label>
+<input id="creatorBody" type="number" min="1" step="1">
+
+<label for="creatorWing">Wing nivå</label>
+<input id="creatorWing" type="number" min="1" step="1">
+
+<label for="creatorRims">Fälgar nivå</label>
+<input id="creatorRims" type="number" min="1" step="1">
+
+<label for="creatorTires">Däck nivå</label>
+<input id="creatorTires" type="number" min="1" step="1">
+
+<div class="creatorActions">
+<button onclick="closeCreatorPanel()">Stäng</button>
+<button onclick="applyCreatorChanges()">Spara</button>
+</div>
+</div>
 </div>
 
 <script>
 
-// SKAPAREN ÄNDRAR PENGAR HÄR
 let money = 50000;
 
 let cars = [
@@ -150,11 +250,27 @@ let cars = [
 {name:"Ultimate Racer",price:200000,img:"https://images.unsplash.com/photo-1511919884226-fd3cad34687c"}
 ]
 
+let upgrades={
+engine:1,
+body:1,
+wing:1,
+rims:1,
+tires:1
+}
+
 let owned=[0]
 let currentCar=0
 
 function updateMoney(){
 document.getElementById("money").innerText=money
+}
+
+function updateUpgradeLevels(){
+document.getElementById("engineLevel").innerText=upgrades.engine
+document.getElementById("bodyLevel").innerText=upgrades.body
+document.getElementById("wingLevel").innerText=upgrades.wing
+document.getElementById("rimsLevel").innerText=upgrades.rims
+document.getElementById("tiresLevel").innerText=upgrades.tires
 }
 
 function buildShop(){
@@ -209,8 +325,10 @@ function upgrade(type){
 if(money>=5000){
 
 money-=5000
+upgrades[type]++
 updateMoney()
-alert(type+" uppgraderad!")
+updateUpgradeLevels()
+alert(type+" uppgraderad till nivå "+upgrades[type]+"!")
 
 }else{
 
@@ -244,6 +362,44 @@ updateMoney()
 
 }
 
+function openCreatorPanel(){
+document.getElementById("creatorMoney").value=money
+document.getElementById("creatorEngine").value=upgrades.engine
+document.getElementById("creatorBody").value=upgrades.body
+document.getElementById("creatorWing").value=upgrades.wing
+document.getElementById("creatorRims").value=upgrades.rims
+document.getElementById("creatorTires").value=upgrades.tires
+document.getElementById("creatorOverlay").classList.add("active")
+}
+
+function closeCreatorPanel(){
+document.getElementById("creatorOverlay").classList.remove("active")
+}
+
+function applyCreatorChanges(){
+money=Math.max(0,Math.floor(Number(document.getElementById("creatorMoney").value)||0))
+upgrades.engine=Math.max(1,Math.floor(Number(document.getElementById("creatorEngine").value)||1))
+upgrades.body=Math.max(1,Math.floor(Number(document.getElementById("creatorBody").value)||1))
+upgrades.wing=Math.max(1,Math.floor(Number(document.getElementById("creatorWing").value)||1))
+upgrades.rims=Math.max(1,Math.floor(Number(document.getElementById("creatorRims").value)||1))
+upgrades.tires=Math.max(1,Math.floor(Number(document.getElementById("creatorTires").value)||1))
+
+updateMoney()
+updateUpgradeLevels()
+closeCreatorPanel()
+}
+
+document.addEventListener("keydown",(e)=>{
+if(e.ctrlKey&&e.altKey&&e.key.toLowerCase()==="l"){
+e.preventDefault()
+openCreatorPanel()
+}
+
+if(e.key==="Escape"){
+closeCreatorPanel()
+}
+})
+
 document.getElementById("difficulty").oninput=(e)=>{
 document.getElementById("diffText").innerText=e.target.value
 }
@@ -253,6 +409,7 @@ document.getElementById("distText").innerText=e.target.value+" m"
 }
 
 updateMoney()
+updateUpgradeLevels()
 buildShop()
 
 </script>
