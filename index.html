@@ -1,116 +1,253 @@
-// ===============================
-//   SNOCROSS GAME ENGINE (C3)
-// ===============================
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Snocross – GitHub One File</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #050814;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: linear-gradient(#0b1020, #050814);
+    }
+    #info {
+      position: fixed;
+      left: 10px;
+      top: 10px;
+      font-size: 12px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">
+    Piltangenter: vänster/höger = styra, upp = gas, ned = broms<br>
+    Hoppa genom att köra över backar.
+  </div>
+  <canvas id="game" width="960" height="540"></canvas>
 
-// Global game state
-const Game = {
-    series: "12-14",
-    maxRPM: 6450,
-    halfGas: 1,
-    exhaust: "stock",
-    hasCAPRO: 0,
-    hasStuds: 0,
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
 
-    throttle: 0,
-    rpm: 0,
-    speed: 0,
-    angle: 0,
-    onGround: 0,
+    const W = canvas.width;
+    const H = canvas.height;
 
-    keyGas: 0,
-    keyBrake: 0,
-    keyLeft: 0,
-    keyRight: 0
-};
+    // Värld
+    const world = {
+      gravity: 2000,
+      friction: 0.98,
+      cameraX: 0
+    };
 
-// ===============================
-//   INPUT SYSTEM
-// ===============================
-document.addEventListener("keydown", e => {
-    if (e.key === "ArrowUp") Game.keyGas = 1;
-    if (e.key === "ArrowDown") Game.keyBrake = 1;
-    if (e.key === "ArrowLeft") Game.keyLeft = 1;
-    if (e.key === "ArrowRight") Game.keyRight = 1;
-});
+    // Input
+    const input = {
+      left: false,
+      right: false,
+      gas: false,
+      brake: false
+    };
 
-document.addEventListener("keyup", e => {
-    if (e.key === "ArrowUp") Game.keyGas = 0;
-    if (e.key === "ArrowDown") Game.keyBrake = 0;
-    if (e.key === "ArrowLeft") Game.keyLeft = 0;
-    if (e.key === "ArrowRight") Game.keyRight = 0;
-});
+    // Skoter
+    const sled = {
+      x: 100,
+      y: 300,
+      vx: 0,
+      vy: 0,
+      width: 80,
+      height: 30,
+      angle: 0,
+      onGround: false,
+      throttle: 0,
+      maxSpeed: 900
+    };
 
-// ===============================
-//   MAIN UPDATE LOOP
-// ===============================
-runOnStartup(async runtime => {
+    // Enkel bana: en serie segment (x, y)
+    const track = [];
+    (function buildTrack() {
+      const baseY = 400;
+      const segmentWidth = 200;
+      let x = 0;
+      let y = baseY;
+      for (let i = 0; i < 40; i++) {
+        const bump = Math.sin(i * 0.6) * 80;
+        track.push({ x, y: baseY + bump });
+        x += segmentWidth;
+      }
+    })();
 
-    runtime.addEventListener("tick", () => {
-
-        const dt = runtime.dt;
-
-        // ---------------------------
-        // GAS / BROMs
-        // ---------------------------
-        if (Game.keyGas) Game.throttle += 1.5 * dt;
-        else Game.throttle -= 2 * dt;
-
-        if (Game.keyBrake) Game.throttle -= 3 * dt;
-
-        if (Game.halfGas)
-            Game.throttle = Math.min(Math.max(Game.throttle, 0), 0.5);
-        else
-            Game.throttle = Math.min(Math.max(Game.throttle, 0), 1);
-
-        // ---------------------------
-        // RPM
-        // ---------------------------
-        Game.rpm = Game.throttle * Game.maxRPM;
-
-        // ---------------------------
-        // ACCELERATION
-        // ---------------------------
-        let accel = 40;
-
-        if (Game.series === "PRO_LITE" || Game.series === "LITE") accel *= 1.2;
-        if (Game.series === "OPEN") accel *= 1.3;
-        if (Game.exhaust === "ggb") accel *= 1.05;
-        if (Game.exhaust === "custom") accel *= 1.1;
-        if (Game.hasStuds) accel *= 1.03;
-        if (Game.hasCAPRO) accel *= 1.02;
-
-        Game.speed += Game.throttle * accel * dt;
-        Game.speed -= Game.speed * 0.1 * dt;
-
-        // ---------------------------
-        // APPLY PHYSICS TO PLAYER
-        // ---------------------------
-        const sled = runtime.objects.PlayerSled.getFirstInstance();
-        if (sled)
-            sled.applyForce(Game.speed * 10, 0);
-
-        // ---------------------------
-        // WHIP
-        // ---------------------------
-        if (!Game.onGround) {
-            if (Game.keyLeft) Game.angle -= 120 * dt;
-            if (Game.keyRight) Game.angle += 120 * dt;
-        } else {
-            Game.angle *= 0.9;
-        }
-
-        Game.angle = Math.max(-45, Math.min(45, Game.angle));
-
-        if (sled)
-            sled.angle = Game.angle;
-
-        // ---------------------------
-        // CAMERA
-        // ---------------------------
-        const cam = runtime.objects.CameraDummy.getFirstInstance();
-        if (cam && sled) {
-            cam.x = sled.x + 300;
-            cam.y = sled.y - 150;
-        }
+    // Input events
+    window.addEventListener("keydown", e => {
+      if (e.key === "ArrowLeft") input.left = true;
+      if (e.key === "ArrowRight") input.right = true;
+      if (e.key === "ArrowUp") input.gas = true;
+      if (e.key === "ArrowDown") input.brake = true;
     });
-});
+
+    window.addEventListener("keyup", e => {
+      if (e.key === "ArrowLeft") input.left = false;
+      if (e.key === "ArrowRight") input.right = false;
+      if (e.key === "ArrowUp") input.gas = false;
+      if (e.key === "ArrowDown") input.brake = false;
+    });
+
+    function getTrackYAt(x) {
+      if (track.length < 2) return H;
+      if (x <= track[0].x) return track[0].y;
+      if (x >= track[track.length - 1].x) return track[track.length - 1].y;
+
+      for (let i = 0; i < track.length - 1; i++) {
+        const a = track[i];
+        const b = track[i + 1];
+        if (x >= a.x && x <= b.x) {
+          const t = (x - a.x) / (b.x - a.x);
+          return a.y + (b.y - a.y) * t;
+        }
+      }
+      return H;
+    }
+
+    let lastTime = performance.now();
+
+    function loop(now) {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    function update(dt) {
+      // Gas / broms
+      if (input.gas) {
+        sled.throttle += 2 * dt;
+      } else {
+        sled.throttle -= 3 * dt;
+      }
+      if (input.brake) {
+        sled.throttle -= 5 * dt;
+      }
+      sled.throttle = Math.max(0, Math.min(1, sled.throttle));
+
+      // Horisontell kraft
+      const accel = 1800;
+      sled.vx += sled.throttle * accel * dt;
+
+      // Sidostyrning i luften (whip)
+      if (!sled.onGround) {
+        if (input.left) sled.angle -= 2.5 * dt;
+        if (input.right) sled.angle += 2.5 * dt;
+      } else {
+        // På marken – stabilisera
+        sled.angle *= 0.9;
+      }
+
+      // Begränsa vinkel
+      const maxAngle = 0.6;
+      if (sled.angle > maxAngle) sled.angle = maxAngle;
+      if (sled.angle < -maxAngle) sled.angle = -maxAngle;
+
+      // Begränsa hastighet
+      if (sled.vx > sled.maxSpeed) sled.vx = sled.maxSpeed;
+      if (sled.vx < 0) sled.vx = 0;
+
+      // Gravitation
+      sled.vy += world.gravity * dt;
+
+      // Position
+      sled.x += sled.vx * dt;
+      sled.y += sled.vy * dt;
+
+      // Kollision med mark
+      const groundY = getTrackYAt(sled.x);
+      if (sled.y + sled.height / 2 >= groundY) {
+        sled.y = groundY - sled.height / 2;
+        sled.vy = 0;
+        sled.onGround = true;
+      } else {
+        sled.onGround = false;
+      }
+
+      // Friktion
+      if (sled.onGround) {
+        sled.vx *= world.friction;
+      }
+
+      // Kamera
+      world.cameraX = sled.x - W * 0.3;
+      if (world.cameraX < 0) world.cameraX = 0;
+    }
+
+    function drawTrack() {
+      ctx.strokeStyle = "#3cf";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      for (let i = 0; i < track.length; i++) {
+        const sx = track[i].x - world.cameraX;
+        const sy = track[i].y;
+        if (i === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+    }
+
+    function drawSled() {
+      const sx = sled.x - world.cameraX;
+      const sy = sled.y;
+
+      ctx.save();
+      ctx.translate(sx, sy);
+      ctx.rotate(sled.angle);
+
+      // Skoterkropp
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(-sled.width / 2, -sled.height / 2, sled.width, sled.height);
+
+      // Förarens “huvud”
+      ctx.beginPath();
+      ctx.arc(10, -sled.height / 2 - 10, 8, 0, Math.PI * 2);
+      ctx.fillStyle = "#0ff";
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawHUD() {
+      ctx.fillStyle = "#fff";
+      ctx.font = "14px system-ui";
+      ctx.fillText("Speed: " + Math.round(sled.vx) + " px/s", 20, 30);
+      ctx.fillText("Throttle: " + sled.throttle.toFixed(2), 20, 50);
+      ctx.fillText("On ground: " + (sled.onGround ? "ja" : "nej"), 20, 70);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // Bakgrund
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#050814");
+      g.addColorStop(1, "#02040a");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+
+      // Mark
+      drawTrack();
+
+      // Skoter
+      drawSled();
+
+      // HUD
+      drawHUD();
+    }
+
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
