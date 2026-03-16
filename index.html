@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8" />
-  <title>Snocross UI Mock</title>
+  <title>Snocross Series Demo</title>
   <style>
     :root {
       --bg: #03050a;
@@ -15,47 +15,19 @@
       --danger: #ff3b3b;
       --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       background: radial-gradient(circle at top, #0b1020 0%, #03050a 55%, #000000 100%);
       color: var(--text);
       font-family: var(--font-main);
       overflow: hidden;
     }
+    body { display: flex; align-items: stretch; justify-content: center; }
+    #app { width: 100%; height: 100%; position: relative; overflow: hidden; }
 
-    body {
-      display: flex;
-      align-items: stretch;
-      justify-content: center;
-    }
-
-    #app {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* Generic */
-
-    .screen {
-      position: absolute;
-      inset: 0;
-      padding: 2.5vh 3vw;
-      display: none;
-    }
-
-    .screen.active {
-      display: block;
-    }
+    .screen { position: absolute; inset: 0; padding: 2.5vh 3vw; display: none; }
+    .screen.active { display: block; }
 
     .glass {
       background: linear-gradient(135deg, rgba(10, 16, 32, 0.9), rgba(5, 8, 20, 0.9));
@@ -63,31 +35,13 @@
       box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(16px);
     }
-
-    .panel {
-      border-radius: 12px;
-      padding: 1.8vh 1.8vw;
-    }
-
-    .title {
-      letter-spacing: 0.18em;
-      font-size: 1.8vh;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 0.8vh;
-    }
-
-    .heading {
-      font-size: 3vh;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: 1.2vh;
-    }
-
-    .sub {
-      font-size: 1.6vh;
-      color: var(--text-muted);
-    }
+    .panel { border-radius: 12px; padding: 1.8vh 1.8vw; }
+    .title { letter-spacing: 0.18em; font-size: 1.8vh; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.8vh; }
+    .heading { font-size: 3vh; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1.2vh; }
+    .sub { font-size: 1.6vh; color: var(--text-muted); }
+    .label { font-size: 1.4vh; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.16em; }
+    .value { font-size: 1.6vh; color: var(--text); }
+    .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent); margin: 1.4vh 0; }
 
     .btn {
       border-radius: 999px;
@@ -101,107 +55,16 @@
       cursor: pointer;
       transition: all 0.15s ease-out;
     }
-
     .btn-primary {
       border-color: var(--accent);
       box-shadow: 0 0 16px rgba(47, 247, 255, 0.35);
     }
-
     .btn:hover {
       transform: translateY(-1px);
       border-color: var(--accent);
       box-shadow: 0 0 18px rgba(47, 247, 255, 0.45);
     }
-
-    .btn-row {
-      display: flex;
-      gap: 1vw;
-      justify-content: flex-end;
-      align-items: center;
-    }
-
-    .chip-row {
-      display: flex;
-      gap: 0.8vw;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .chip {
-      border-radius: 999px;
-      padding: 0.8vh 1.6vw;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      font-size: 1.4vh;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s ease-out;
-    }
-
-    .chip.active {
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: 0 0 12px rgba(47, 247, 255, 0.35);
-    }
-
-    .stat-row {
-      display: flex;
-      flex-direction: column;
-      gap: 1.2vh;
-      margin-top: 1.6vh;
-    }
-
-    .stat {
-      display: flex;
-      align-items: center;
-      gap: 1vw;
-      font-size: 1.5vh;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--text-muted);
-    }
-
-    .stat-bar {
-      flex: 1;
-      height: 0.9vh;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.06);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .stat-fill {
-      position: absolute;
-      inset: 0;
-      width: 60%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      box-shadow: 0 0 12px rgba(47, 247, 255, 0.45);
-    }
-
-    .stat-fill.short { width: 40%; }
-    .stat-fill.long { width: 80%; }
-
-    .label {
-      font-size: 1.4vh;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-    }
-
-    .value {
-      font-size: 1.6vh;
-      color: var(--text);
-    }
-
-    .divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
-      margin: 1.4vh 0;
-    }
-
-    /* Top bar for debug navigation between screens */
+    .btn-row { display: flex; gap: 1vw; justify-content: flex-end; align-items: center; }
 
     #debug-nav {
       position: absolute;
@@ -212,7 +75,6 @@
       gap: 0.6vw;
       z-index: 999;
     }
-
     #debug-nav button {
       font-size: 1.2vh;
       padding: 0.6vh 1vw;
@@ -222,301 +84,80 @@
       color: var(--text-muted);
       cursor: pointer;
     }
-
     #debug-nav button.active {
       border-color: var(--accent);
       color: var(--accent);
       box-shadow: 0 0 10px rgba(47, 247, 255, 0.4);
     }
 
-    /* Huvudmeny */
+    /* Serieval / setup */
 
-    #screen-main {
-      display: flex;
-      gap: 4vw;
-    }
-
-    #main-menu {
-      width: 22%;
-      align-self: center;
-    }
-
-    #main-menu .game-title {
-      font-size: 3.4vh;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      margin-bottom: 3vh;
-    }
-
-    #main-menu .game-sub {
-      font-size: 1.6vh;
-      color: var(--text-muted);
-      margin-bottom: 4vh;
-    }
-
-    .menu-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1.8vh;
-    }
-
-    .menu-item {
-      font-size: 2.2vh;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      color: var(--text-muted);
-      cursor: pointer;
-      position: relative;
-      padding-left: 1.4vw;
-      transition: all 0.15s ease-out;
-    }
-
-    .menu-item::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 50%;
-      width: 0.4vw;
-      height: 0.2vh;
-      border-radius: 999px;
-      background: transparent;
-      transform: translateY(-50%);
-    }
-
-    .menu-item.active {
-      color: var(--accent);
-      transform: translateX(0.3vw);
-      text-shadow: 0 0 12px rgba(47, 247, 255, 0.6);
-    }
-
-    .menu-item.active::before {
-      background: var(--accent);
-      box-shadow: 0 0 10px rgba(47, 247, 255, 0.7);
-    }
-
-    #main-bg {
-      flex: 1;
-      border-radius: 18px;
-      overflow: hidden;
-      position: relative;
-      background: radial-gradient(circle at top, #1b2238 0%, #050814 55%, #020308 100%);
-    }
-
-    #main-bg::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        radial-gradient(circle at 20% 0%, rgba(47, 247, 255, 0.18), transparent 55%),
-        radial-gradient(circle at 80% 100%, rgba(107, 255, 74, 0.16), transparent 55%);
-      mix-blend-mode: screen;
-      opacity: 0.9;
-    }
-
-    #main-bg-inner {
-      position: absolute;
-      inset: 0;
-      padding: 2vh 2vw;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    #main-bg-track {
-      flex: 1;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: linear-gradient(135deg, rgba(5, 8, 20, 0.9), rgba(3, 5, 12, 0.9));
-      position: relative;
-      overflow: hidden;
-    }
-
-    #main-bg-track::after {
-      content: "FALUN ICEBREAKER SX";
-      position: absolute;
-      bottom: 3vh;
-      left: 3vw;
-      font-size: 2.4vh;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: rgba(242, 244, 247, 0.9);
-    }
-
-    #main-bg-track .track-overlay {
-      position: absolute;
-      inset: 0;
-      background-image:
-        radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.08), transparent 60%),
-        linear-gradient(to bottom, rgba(0, 0, 0, 0.4), transparent 40%, rgba(0, 0, 0, 0.7));
-      mix-blend-mode: soft-light;
-    }
-
-    #main-bg-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 1.6vh;
-      font-size: 1.4vh;
-      color: var(--text-muted);
-    }
-
-    #build-info {
-      opacity: 0.7;
-    }
-
-    /* Garage */
-
-    #screen-garage {
+    #screen-setup {
       display: flex;
       gap: 3vw;
     }
+    #setup-left { flex: 0 0 32%; }
+    #setup-right { flex: 1; }
 
-    #garage-sled {
-      flex: 0 0 48%;
-      border-radius: 18px;
-      position: relative;
-      overflow: hidden;
-      background: radial-gradient(circle at top, #1b2238 0%, #050814 55%, #020308 100%);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    #garage-sled::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        radial-gradient(circle at 20% 0%, rgba(47, 247, 255, 0.18), transparent 55%),
-        radial-gradient(circle at 80% 100%, rgba(107, 255, 74, 0.16), transparent 55%);
-      mix-blend-mode: screen;
-      opacity: 0.9;
-    }
-
-    #garage-sled-inner {
-      position: absolute;
-      inset: 0;
-      padding: 2vh 2vw;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-    }
-
-    .sled-silhouette {
-      position: absolute;
-      inset: 10% 8% 18% 8%;
-      border-radius: 18px;
-      border: 1px dashed rgba(255, 255, 255, 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: rgba(242, 244, 247, 0.4);
-      font-size: 1.8vh;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-    }
-
-    #garage-info {
-      flex: 1;
-      max-width: 32%;
-    }
-
-    #garage-info .model-name {
-      font-size: 2.4vh;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      margin-bottom: 0.6vh;
-    }
-
-    #garage-info .class {
+    select, input[type="checkbox"] {
       font-size: 1.6vh;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      margin-bottom: 1.6vh;
+      padding: 0.6vh 0.8vw;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(5,8,20,0.9);
+      color: var(--text);
+      margin-top: 0.6vh;
     }
+    .field { margin-bottom: 1.4vh; }
 
-    #garage-info .meta {
-      display: flex;
-      gap: 2vw;
-      font-size: 1.4vh;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      margin-bottom: 1.6vh;
-    }
-
-    /* Track select */
-
-    #screen-track {
-      display: flex;
-      gap: 3vw;
-    }
-
-    #track-left {
-      flex: 0 0 30%;
-    }
-
-    #track-right {
-      flex: 1;
-      border-radius: 18px;
-      position: relative;
-      overflow: hidden;
-      background: radial-gradient(circle at top, #1b2238 0%, #050814 55%, #020308 100%);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    #track-right::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        radial-gradient(circle at 20% 0%, rgba(47, 247, 255, 0.18), transparent 55%),
-        radial-gradient(circle at 80% 100%, rgba(107, 255, 74, 0.16), transparent 55%);
-      mix-blend-mode: screen;
-      opacity: 0.9;
-    }
-
-    #track-right-inner {
-      position: absolute;
-      inset: 0;
-      padding: 2vh 2vw;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .track-meta {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.2vh 1.6vw;
-      margin-top: 1.4vh;
-      font-size: 1.5vh;
-    }
-
-    .track-meta .label {
-      font-size: 1.3vh;
-    }
-
-    /* HUD / Race */
+    /* Race screen */
 
     #screen-race {
-      position: absolute;
-      inset: 0;
       padding: 0;
     }
-
     #race-bg {
       position: absolute;
       inset: 0;
       background: radial-gradient(circle at top, #1b2238 0%, #050814 55%, #020308 100%);
     }
-
-    #race-overlay {
+    #race-track {
+      position: absolute;
+      left: 5vw;
+      right: 5vw;
+      bottom: 20vh;
+      height: 4vh;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #444, #222);
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      overflow: hidden;
+    }
+    #race-track::after {
+      content: "";
       position: absolute;
       inset: 0;
-      pointer-events: none;
+      background-image: repeating-linear-gradient(
+        90deg,
+        rgba(255,255,255,0.18) 0,
+        rgba(255,255,255,0.18) 2vw,
+        transparent 2vw,
+        transparent 4vw
+      );
+      opacity: 0.4;
+    }
+    #sled {
+      position: absolute;
+      bottom: 20vh;
+      width: 6vw;
+      height: 4vh;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2ff7ff, #6bff4a);
+      box-shadow: 0 0 18px rgba(47,247,255,0.8);
+      transform: translateX(0);
     }
 
-    /* HUD bottom right */
+    /* HUD */
+
+    #race-overlay { position: absolute; inset: 0; pointer-events: none; }
 
     #hud-raceinfo {
       position: absolute;
@@ -525,31 +166,23 @@
       text-align: right;
       font-size: 1.6vh;
     }
-
     #hud-raceinfo .pos {
       font-size: 3vh;
       letter-spacing: 0.18em;
       text-transform: uppercase;
     }
-
     #hud-raceinfo .lap {
       margin-top: 0.4vh;
       color: var(--text-muted);
       letter-spacing: 0.16em;
       text-transform: uppercase;
     }
-
     #hud-raceinfo .times {
       margin-top: 0.8vh;
       font-size: 1.5vh;
       color: var(--text-muted);
     }
-
-    #hud-raceinfo .times span {
-      display: block;
-    }
-
-    /* HUD bottom left */
+    #hud-raceinfo .times span { display: block; }
 
     #hud-sled {
       position: absolute;
@@ -560,7 +193,6 @@
       gap: 1.6vw;
       font-size: 1.4vh;
     }
-
     .sled-icon {
       width: 7vh;
       height: 7vh;
@@ -570,7 +202,6 @@
       overflow: hidden;
       background: rgba(5, 8, 20, 0.9);
     }
-
     .sled-icon::before {
       content: "";
       position: absolute;
@@ -578,7 +209,6 @@
       border-radius: 999px;
       border: 2px solid var(--accent2);
     }
-
     .sled-icon::after {
       content: "";
       position: absolute;
@@ -586,13 +216,7 @@
       border-radius: 999px;
       border: 2px solid var(--accent2);
     }
-
-    .sled-health {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6vh;
-    }
-
+    .sled-health { display: flex; flex-direction: column; gap: 0.6vh; }
     .health-bar {
       width: 18vh;
       height: 0.9vh;
@@ -601,7 +225,6 @@
       overflow: hidden;
       position: relative;
     }
-
     .health-fill {
       position: absolute;
       inset: 0;
@@ -610,11 +233,6 @@
       background: linear-gradient(90deg, var(--accent2), var(--accent));
       box-shadow: 0 0 12px rgba(107, 255, 74, 0.5);
     }
-
-    .health-fill.mid { width: 60%; }
-    .health-fill.low { width: 35%; background: linear-gradient(90deg, #ff7a2f, #ff3b3b); }
-
-    /* HUD top center */
 
     #hud-standings {
       position: absolute;
@@ -631,7 +249,6 @@
       gap: 2vw;
       font-size: 1.4vh;
     }
-
     .standing {
       display: flex;
       gap: 0.4vw;
@@ -639,7 +256,6 @@
       text-transform: uppercase;
       letter-spacing: 0.12em;
     }
-
     .standing.you {
       color: var(--accent);
       text-shadow: 0 0 10px rgba(47, 247, 255, 0.7);
@@ -655,13 +271,11 @@
       justify-content: center;
       pointer-events: none;
     }
-
     .start-bars {
       display: flex;
       gap: 2vw;
       align-items: flex-end;
     }
-
     .start-bar {
       width: 3vw;
       height: 18vh;
@@ -670,7 +284,6 @@
       overflow: hidden;
       position: relative;
     }
-
     .start-fill {
       position: absolute;
       inset: auto 0 0 0;
@@ -679,7 +292,6 @@
       box-shadow: 0 0 18px rgba(47, 247, 255, 0.7);
       transition: height 0.3s ease-out;
     }
-
     .start-fill.active-3 { height: 33%; background: #2f7fff; }
     .start-fill.active-2 { height: 66%; background: #ffd52f; }
     .start-fill.active-1 { height: 100%; background: #6bff4a; }
@@ -694,7 +306,6 @@
       text-transform: uppercase;
       color: var(--text-muted);
     }
-
     #go-text {
       position: absolute;
       top: 50%;
@@ -708,61 +319,9 @@
       opacity: 0;
       transition: all 0.25s ease-out;
     }
-
     #go-text.show {
       opacity: 1;
       transform: translate(-50%, -50%) scale(1);
-    }
-
-    /* Result screen */
-
-    #screen-results {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 3vh;
-    }
-
-    #results-table {
-      width: 60vw;
-      border-radius: 18px;
-      padding: 2vh 2vw;
-      background: linear-gradient(135deg, rgba(5, 8, 20, 0.95), rgba(3, 5, 12, 0.95));
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
-      font-size: 1.5vh;
-    }
-
-    #results-table table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    #results-table th,
-    #results-table td {
-      padding: 0.8vh 0.6vw;
-      text-align: left;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    #results-table th {
-      font-size: 1.3vh;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text-muted);
-    }
-
-    #results-table tr.you {
-      color: var(--accent);
-      text-shadow: 0 0 10px rgba(47, 247, 255, 0.7);
-    }
-
-    #results-buttons {
-      width: 60vw;
-      display: flex;
-      justify-content: flex-end;
-      gap: 1vw;
     }
 
   </style>
@@ -770,186 +329,113 @@
 <body>
   <div id="app">
 
-    <!-- Debug nav to switch screens -->
+    <!-- Debug nav -->
     <div id="debug-nav">
-      <button data-screen="screen-main" class="active">Main</button>
-      <button data-screen="screen-garage">Garage</button>
-      <button data-screen="screen-track">Track</button>
-      <button data-screen="screen-race">Race HUD</button>
-      <button data-screen="screen-results">Results</button>
+      <button data-screen="screen-setup" class="active">Setup</button>
+      <button data-screen="screen-race">Race</button>
     </div>
 
-    <!-- Huvudmeny -->
-    <section id="screen-main" class="screen active">
-      <div id="main-menu">
-        <div class="game-title">SNOCROSS SIM</div>
-        <div class="game-sub">Falun Icebreaker SX • Pro Snocross Championship</div>
-        <div class="menu-list">
-          <div class="menu-item active">Race</div>
-          <div class="menu-item">Career</div>
-          <div class="menu-item">Time Attack</div>
-          <div class="menu-item">Online</div>
-          <div class="menu-item">Garage</div>
-          <div class="menu-item">Settings</div>
+    <!-- Setup / serieval -->
+    <section id="screen-setup" class="screen active">
+      <div id="setup-left" class="glass panel">
+        <div class="title">Serie</div>
+        <div class="heading">Välj klass</div>
+        <div class="sub" style="margin-bottom:1.6vh;">
+          Välj vilken serie du vill köra i. Serien styr max RPM, gasläge och i OPEN även avgas & dubb.
+        </div>
+        <div class="divider"></div>
+
+        <div class="field">
+          <div class="label">Serie</div>
+          <select id="series-select">
+            <option value="12-14">12–14 ungdom</option>
+            <option value="14-16">14–16 ungdom</option>
+            <option value="PRO_LITE">PRO LITE</option>
+            <option value="LITE">LITE</option>
+            <option value="OPEN">OPEN</option>
+          </select>
+        </div>
+
+        <div id="open-options" style="display:none; margin-top:1.4vh;">
+          <div class="divider"></div>
+          <div class="label" style="margin-bottom:0.6vh;">OPEN inställningar</div>
+          <div class="field">
+            <div class="label">Avgasrör</div>
+            <select id="exhaust-select">
+              <option value="stock">Stock</option>
+              <option value="ggb">GGB</option>
+              <option value="custom">Egen slutburk</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label">
+              <input type="checkbox" id="studs-checkbox" />
+              &nbsp; Dubb på mattan
+            </label>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="field">
+          <div class="label">Aktuell setup</div>
+          <div class="value" id="setup-summary">12–14 ungdom • 6450 RPM • halv gas</div>
+        </div>
+
+        <div class="btn-row" style="margin-top:2vh;">
+          <button class="btn btn-primary" id="btn-start-race">Starta race</button>
         </div>
       </div>
-      <div id="main-bg">
-        <div id="main-bg-inner">
-          <div id="main-bg-track">
-            <div class="track-overlay"></div>
-          </div>
-          <div id="main-bg-footer">
-            <div id="build-info">BUILD 0.1.0 • INTERNAL • FALUN ICEBREAKER SX</div>
-            <div>Press <span style="color: var(--accent);">ENTER</span> to continue</div>
-          </div>
+
+      <div id="setup-right" class="glass panel">
+        <div class="title">Info</div>
+        <div class="heading">Tekniska regler</div>
+        <div class="sub">
+          <ul style="margin-top:1vh; margin-left:1.4vw; line-height:1.6;">
+            <li>12–14: skoter strypt på <b>6450 RPM</b> och <b>halv gas</b>.</li>
+            <li>14–16: skoter strypt på <b>9945 RPM</b> och <b>halv gas</b>.</li>
+            <li>PRO LITE: samma strypning som 14–16 men <b>hel gas</b>.</li>
+            <li>LITE: samma som PRO LITE.</li>
+            <li>OPEN: samma strypning som 14–16/PRO LITE men du kan välja <b>avgas</b> och <b>dubb</b>.</li>
+          </ul>
         </div>
       </div>
     </section>
 
-    <!-- Garage -->
-    <section id="screen-garage" class="screen">
-      <div id="garage-sled">
-        <div class="sled-silhouette">3D SLED PLACEHOLDER</div>
-        <div id="garage-sled-inner">
-          <div class="title">Showroom</div>
-          <div class="heading">Pro Race 600</div>
-          <div class="sub">Rotate, inspect and tune your snocross sled.</div>
-        </div>
-      </div>
-      <div id="garage-info" class="glass panel">
-        <div class="title">Selected sled</div>
-        <div class="model-name">Lynx Rave 600 RS (2026)</div>
-        <div class="class">Pro Lite</div>
-        <div class="meta">
-          <div>Weight: <span class="value">195 kg</span></div>
-          <div>Power: <span class="value">600cc 2‑stroke</span></div>
-        </div>
-        <div class="divider"></div>
-        <div class="label">Performance</div>
-        <div class="stat-row">
-          <div class="stat">
-            <span>Accel</span>
-            <div class="stat-bar"><div class="stat-fill long"></div></div>
-          </div>
-          <div class="stat">
-            <span>Top speed</span>
-            <div class="stat-bar"><div class="stat-fill"></div></div>
-          </div>
-          <div class="stat">
-            <span>Handling</span>
-            <div class="stat-bar"><div class="stat-fill long"></div></div>
-          </div>
-          <div class="stat">
-            <span>Suspension</span>
-            <div class="stat-bar"><div class="stat-fill"></div></div>
-          </div>
-          <div class="stat">
-            <span>Start</span>
-            <div class="stat-bar"><div class="stat-fill short"></div></div>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <div class="label" style="margin-bottom: 0.8vh;">Brands</div>
-        <div class="chip-row" style="margin-bottom: 1.8vh;">
-          <div class="chip active">Ski‑Doo</div>
-          <div class="chip">Polaris</div>
-          <div class="chip">Arctic Cat</div>
-          <div class="chip">Lynx</div>
-        </div>
-        <div class="btn-row">
-          <button class="btn">Livery</button>
-          <button class="btn">Tuning</button>
-          <button class="btn btn-primary">Race</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Track select -->
-    <section id="screen-track" class="screen">
-      <div id="track-left" class="glass panel">
-        <div class="title">Event</div>
-        <div class="heading">Falun Icebreaker SX</div>
-        <div class="sub">Night race • Hardpack / Soft mix • 12 riders</div>
-        <div class="divider"></div>
-        <div class="track-meta">
-          <div>
-            <div class="label">Length</div>
-            <div class="value">0.92 km</div>
-          </div>
-          <div>
-            <div class="label">Laps</div>
-            <div class="value">10</div>
-          </div>
-          <div>
-            <div class="label">Surface</div>
-            <div class="value">Hardpack / Soft</div>
-          </div>
-          <div>
-            <div class="label">Difficulty</div>
-            <div class="value">★★★★☆</div>
-          </div>
-          <div>
-            <div class="label">Weather</div>
-            <div class="value">Light snow</div>
-          </div>
-          <div>
-            <div class="label">Class</div>
-            <div class="value">Pro Lite</div>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <div class="btn-row">
-          <button class="btn">Back</button>
-          <button class="btn btn-primary">Start heat</button>
-        </div>
-      </div>
-      <div id="track-right">
-        <div id="track-right-inner">
-          <div class="title">Track preview</div>
-          <div class="heading">Stadium snocross</div>
-          <div class="sub">Whoops • Triple‑triple • Rhythm section • Bowl corners</div>
-          <div style="flex:1;"></div>
-          <div class="sub" style="text-align:right;">Cinematic camera placeholder</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Race HUD -->
+    <!-- Race -->
     <section id="screen-race" class="screen">
       <div id="race-bg"></div>
+      <div id="race-track"></div>
+      <div id="sled"></div>
+
       <div id="race-overlay">
-        <!-- HUD top -->
         <div id="hud-standings">
           <div class="standing">P1 #27 ANDERSSON +0.0</div>
-          <div class="standing">P2 #13 JOHNSON +0.6</div>
-          <div class="standing you">P3 YOU +1.1</div>
-          <div class="standing">P4 #45 LARSON +2.3</div>
+          <div class="standing you">P2 YOU +0.4</div>
+          <div class="standing">P3 #13 JOHNSON +1.1</div>
         </div>
 
-        <!-- HUD bottom right -->
         <div id="hud-raceinfo">
-          <div class="pos">P3 / 12</div>
-          <div class="lap">Lap 4 / 10</div>
+          <div class="pos" id="hud-series">PRO LITE</div>
+          <div class="lap" id="hud-rpm">RPM: 0</div>
           <div class="times">
-            <span>Lap: 00:42.381</span>
-            <span>Best: 00:40.927</span>
+            <span id="hud-throttle">Gas: 0%</span>
+            <span id="hud-speed">Fart: 0 km/h</span>
+            <span id="hud-extra">Avgas: – • Dubb: –</span>
           </div>
         </div>
 
-        <!-- HUD bottom left -->
         <div id="hud-sled">
           <div class="sled-icon"></div>
           <div class="sled-health">
             <div class="label">Sled health</div>
             <div class="health-bar"><div class="health-fill"></div></div>
-            <div class="label">Front suspension</div>
-            <div class="health-bar"><div class="health-fill mid"></div></div>
-            <div class="label">Rear suspension</div>
-            <div class="health-bar"><div class="health-fill low"></div></div>
+            <div class="label">Front grip</div>
+            <div class="health-bar"><div class="health-fill" id="grip-front"></div></div>
+            <div class="label">Rear grip</div>
+            <div class="health-bar"><div class="health-fill" id="grip-rear"></div></div>
           </div>
         </div>
 
-        <!-- Start sequence -->
         <div id="start-seq">
           <div class="start-bars">
             <div class="start-bar"><div class="start-fill" id="bar3"></div></div>
@@ -962,69 +448,186 @@
       </div>
     </section>
 
-    <!-- Results -->
-    <section id="screen-results" class="screen">
-      <div id="results-table">
-        <div class="title">Final results</div>
-        <div class="heading">Falun Icebreaker SX</div>
-        <div class="sub" style="margin-bottom:1.6vh;">Pro Lite • 10 laps • Night race</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Pos</th>
-              <th>#</th>
-              <th>Name</th>
-              <th>Brand</th>
-              <th>Best lap</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1</td><td>27</td><td>Andersson</td><td>Lynx</td><td>00:40.512</td><td>07:05.231</td>
-            </tr>
-            <tr class="you">
-              <td>2</td><td>99</td><td>You</td><td>Polaris</td><td>00:40.927</td><td>07:07.842</td>
-            </tr>
-            <tr>
-              <td>3</td><td>13</td><td>Johnson</td><td>Ski‑Doo</td><td>00:41.203</td><td>07:10.114</td>
-            </tr>
-            <tr>
-              <td>4</td><td>45</td><td>Larson</td><td>Arctic Cat</td><td>00:41.889</td><td>07:13.502</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div id="results-buttons">
-        <button class="btn">Watch replay</button>
-        <button class="btn">Next heat</button>
-        <button class="btn btn-primary">Back to paddock</button>
-      </div>
-    </section>
-
   </div>
 
   <script>
-    // Simple screen switcher for debug nav
     const screens = document.querySelectorAll(".screen");
     const navButtons = document.querySelectorAll("#debug-nav button");
-
     function showScreen(id) {
       screens.forEach(s => s.classList.remove("active"));
       document.getElementById(id).classList.add("active");
       navButtons.forEach(b => b.classList.remove("active"));
-      navButtons.forEach(b => {
-        if (b.dataset.screen === id) b.classList.add("active");
-      });
+      navButtons.forEach(b => { if (b.dataset.screen === id) b.classList.add("active"); });
     }
-
     navButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        showScreen(btn.dataset.screen);
-      });
+      btn.addEventListener("click", () => showScreen(btn.dataset.screen));
     });
 
-    // Simple fake start sequence animation
+    const seriesSelect = document.getElementById("series-select");
+    const openOptions = document.getElementById("open-options");
+    const exhaustSelect = document.getElementById("exhaust-select");
+    const studsCheckbox = document.getElementById("studs-checkbox");
+    const setupSummary = document.getElementById("setup-summary");
+    const btnStartRace = document.getElementById("btn-start-race");
+
+    const seriesConfig = {
+      "12-14": { name: "12–14 ungdom", maxRPM: 6450, halfGas: true, fullGas: false },
+      "14-16": { name: "14–16 ungdom", maxRPM: 9945, halfGas: true, fullGas: false },
+      "PRO_LITE": { name: "PRO LITE", maxRPM: 9945, halfGas: false, fullGas: true },
+      "LITE": { name: "LITE", maxRPM: 9945, halfGas: false, fullGas: true },
+      "OPEN": { name: "OPEN", maxRPM: 9945, halfGas: false, fullGas: true }
+    };
+
+    function updateSetupSummary() {
+      const val = seriesSelect.value;
+      const cfg = seriesConfig[val];
+      let gasText = cfg.halfGas ? "halv gas" : "hel gas";
+      let extra = "";
+      if (val === "OPEN") {
+        const ex = exhaustSelect.value;
+        const studs = studsCheckbox.checked;
+        let exText = ex === "ggb" ? "GGB" : ex === "stock" ? "Stock" : "Egen slutburk";
+        extra = ` • Avgas: ${exText} • Dubb: ${studs ? "Ja" : "Nej"}`;
+      }
+      setupSummary.textContent = `${cfg.name} • ${cfg.maxRPM} RPM • ${gasText}${extra}`;
+    }
+
+    seriesSelect.addEventListener("change", () => {
+      if (seriesSelect.value === "OPEN") {
+        openOptions.style.display = "block";
+      } else {
+        openOptions.style.display = "none";
+      }
+      updateSetupSummary();
+    });
+    exhaustSelect.addEventListener("change", updateSetupSummary);
+    studsCheckbox.addEventListener("change", updateSetupSummary);
+    updateSetupSummary();
+
+    // Race logic (enkel mock)
+    let currentSeries = seriesConfig["12-14"];
+    let currentExhaust = "stock";
+    let currentStuds = false;
+
+    let throttle = 0; // 0–1
+    let rpm = 0;
+    let speed = 0; // "km/h" känsla
+    let sledX = 0; // 0–1 längs banan
+    let running = false;
+
+    const hudSeries = document.getElementById("hud-series");
+    const hudRPM = document.getElementById("hud-rpm");
+    const hudThrottle = document.getElementById("hud-throttle");
+    const hudSpeed = document.getElementById("hud-speed");
+    const hudExtra = document.getElementById("hud-extra");
+    const sledEl = document.getElementById("sled");
+    const gripFront = document.getElementById("grip-front");
+    const gripRear = document.getElementById("grip-rear");
+
+    function applySeriesToHUD() {
+      hudSeries.textContent = currentSeries.name;
+      let exText = "–";
+      if (currentSeries.name === "OPEN") {
+        exText = currentExhaust === "ggb" ? "GGB" : currentExhaust === "stock" ? "Stock" : "Egen";
+      }
+      hudExtra.textContent = `Avgas: ${exText} • Dubb: ${currentStuds ? "Ja" : "Nej"}`;
+      // Grip indikativt
+      let gripBase = currentStuds ? 0.95 : 0.7;
+      gripFront.style.width = (gripBase * 100) + "%";
+      gripRear.style.width = (gripBase * 100) + "%";
+    }
+
+    btnStartRace.addEventListener("click", () => {
+      const val = seriesSelect.value;
+      currentSeries = seriesConfig[val];
+      currentExhaust = exhaustSelect.value;
+      currentStuds = studsCheckbox.checked;
+      throttle = 0;
+      rpm = 0;
+      speed = 0;
+      sledX = 0;
+      applySeriesToHUD();
+      showScreen("screen-race");
+      document.getElementById("start-seq").style.display = "flex";
+      runStartSequence();
+    });
+
+    // Körning – piltangenter
+    const keys = { up: false, down: false };
+    window.addEventListener("keydown", e => {
+      if (e.code === "ArrowUp") keys.up = true;
+      if (e.code === "ArrowDown") keys.down = true;
+    });
+    window.addEventListener("keyup", e => {
+      if (e.code === "ArrowUp") keys.up = false;
+      if (e.code === "ArrowDown") keys.down = false;
+    });
+
+    function updatePhysics(dt) {
+      // Gasbegränsning
+      let maxThrottle = 1;
+      if (currentSeries.halfGas) maxThrottle = 0.5;
+
+      // Acceleration beroende på serie + avgas + dubb
+      let accelBase = 0.6;
+      if (currentSeries.name === "PRO LITE" || currentSeries.name === "LITE") accelBase = 0.8;
+      if (currentSeries.name === "OPEN") accelBase = 0.9;
+
+      if (currentExhaust === "ggb") accelBase += 0.1;
+      if (currentExhaust === "custom") accelBase += 0.15;
+
+      if (currentStuds) accelBase += 0.05;
+
+      if (keys.up) {
+        throttle += accelBase * dt;
+      } else {
+        throttle -= 0.8 * dt;
+      }
+      if (keys.down) {
+        throttle -= 1.2 * dt;
+      }
+
+      throttle = Math.max(0, Math.min(maxThrottle, throttle));
+
+      rpm = throttle * currentSeries.maxRPM;
+      // Fart – bara känsla
+      speed = throttle * 120; // km/h ungefär
+
+      // Rörelse längs banan
+      let speedFactor = speed / 120; // 0–1
+      sledX += speedFactor * dt * 0.4; // 0.4 = hur snabbt man tar sig runt
+      if (sledX > 1) sledX -= 1;
+
+      // Uppdatera HUD
+      hudRPM.textContent = `RPM: ${rpm.toFixed(0)}`;
+      hudThrottle.textContent = `Gas: ${(throttle * 100).toFixed(0)}%`;
+      hudSpeed.textContent = `Fart: ${speed.toFixed(0)} km/h`;
+
+      // Uppdatera position
+      const track = document.getElementById("race-track");
+      const trackRect = track.getBoundingClientRect();
+      const sledWidth = sledEl.getBoundingClientRect().width;
+      const minX = trackRect.left + 0.02 * trackRect.width;
+      const maxX = trackRect.right - 0.02 * trackRect.width - sledWidth;
+      const x = minX + (maxX - minX) * sledX;
+      sledEl.style.transform = `translateX(${x - trackRect.left}px)`;
+    }
+
+    let lastTime = null;
+    function loop(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+      lastTime = timestamp;
+
+      if (document.getElementById("screen-race").classList.contains("active")) {
+        updatePhysics(dt);
+      }
+
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    // Startsekvens
     function runStartSequence() {
       const bar3 = document.getElementById("bar3");
       const bar2 = document.getElementById("bar2");
@@ -1062,15 +665,6 @@
         document.getElementById("start-seq").style.display = "none";
       }, 2600);
     }
-
-    // Auto‑run start sequence when race screen is shown via debug nav
-    document.querySelector('button[data-screen="screen-race"]').addEventListener("click", () => {
-      document.getElementById("start-seq").style.display = "flex";
-      runStartSequence();
-    });
-
-    // Initial run if you start on race screen manually
-    // runStartSequence();
   </script>
 </body>
 </html>
