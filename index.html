@@ -1,670 +1,116 @@
-<!DOCTYPE html>
-<html lang="sv">
-<head>
-  <meta charset="UTF-8" />
-  <title>Snocross Series Demo</title>
-  <style>
-    :root {
-      --bg: #03050a;
-      --bg-soft: #050814;
-      --accent: #2ff7ff;
-      --accent2: #6bff4a;
-      --highlight: #ff7a2f;
-      --text: #f2f4f7;
-      --text-muted: #a0a4af;
-      --danger: #ff3b3b;
-      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%; height: 100%;
-      background: radial-gradient(circle at top, #0b1020 0%, #03050a 55%, #000000 100%);
-      color: var(--text);
-      font-family: var(--font-main);
-      overflow: hidden;
-    }
-    body { display: flex; align-items: stretch; justify-content: center; }
-    #app { width: 100%; height: 100%; position: relative; overflow: hidden; }
+// ===============================
+//   SNOCROSS GAME ENGINE (C3)
+// ===============================
 
-    .screen { position: absolute; inset: 0; padding: 2.5vh 3vw; display: none; }
-    .screen.active { display: block; }
+// Global game state
+const Game = {
+    series: "12-14",
+    maxRPM: 6450,
+    halfGas: 1,
+    exhaust: "stock",
+    hasCAPRO: 0,
+    hasStuds: 0,
 
-    .glass {
-      background: linear-gradient(135deg, rgba(10, 16, 32, 0.9), rgba(5, 8, 20, 0.9));
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(16px);
-    }
-    .panel { border-radius: 12px; padding: 1.8vh 1.8vw; }
-    .title { letter-spacing: 0.18em; font-size: 1.8vh; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.8vh; }
-    .heading { font-size: 3vh; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1.2vh; }
-    .sub { font-size: 1.6vh; color: var(--text-muted); }
-    .label { font-size: 1.4vh; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.16em; }
-    .value { font-size: 1.6vh; color: var(--text); }
-    .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent); margin: 1.4vh 0; }
+    throttle: 0,
+    rpm: 0,
+    speed: 0,
+    angle: 0,
+    onGround: 0,
 
-    .btn {
-      border-radius: 999px;
-      padding: 1.2vh 2.4vw;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: transparent;
-      color: var(--text);
-      font-size: 1.6vh;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      cursor: pointer;
-      transition: all 0.15s ease-out;
-    }
-    .btn-primary {
-      border-color: var(--accent);
-      box-shadow: 0 0 16px rgba(47, 247, 255, 0.35);
-    }
-    .btn:hover {
-      transform: translateY(-1px);
-      border-color: var(--accent);
-      box-shadow: 0 0 18px rgba(47, 247, 255, 0.45);
-    }
-    .btn-row { display: flex; gap: 1vw; justify-content: flex-end; align-items: center; }
+    keyGas: 0,
+    keyBrake: 0,
+    keyLeft: 0,
+    keyRight: 0
+};
 
-    #debug-nav {
-      position: absolute;
-      top: 1.2vh;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 0.6vw;
-      z-index: 999;
-    }
-    #debug-nav button {
-      font-size: 1.2vh;
-      padding: 0.6vh 1vw;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      background: rgba(5, 8, 20, 0.8);
-      color: var(--text-muted);
-      cursor: pointer;
-    }
-    #debug-nav button.active {
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: 0 0 10px rgba(47, 247, 255, 0.4);
-    }
+// ===============================
+//   INPUT SYSTEM
+// ===============================
+document.addEventListener("keydown", e => {
+    if (e.key === "ArrowUp") Game.keyGas = 1;
+    if (e.key === "ArrowDown") Game.keyBrake = 1;
+    if (e.key === "ArrowLeft") Game.keyLeft = 1;
+    if (e.key === "ArrowRight") Game.keyRight = 1;
+});
 
-    /* Serieval / setup */
+document.addEventListener("keyup", e => {
+    if (e.key === "ArrowUp") Game.keyGas = 0;
+    if (e.key === "ArrowDown") Game.keyBrake = 0;
+    if (e.key === "ArrowLeft") Game.keyLeft = 0;
+    if (e.key === "ArrowRight") Game.keyRight = 0;
+});
 
-    #screen-setup {
-      display: flex;
-      gap: 3vw;
-    }
-    #setup-left { flex: 0 0 32%; }
-    #setup-right { flex: 1; }
+// ===============================
+//   MAIN UPDATE LOOP
+// ===============================
+runOnStartup(async runtime => {
 
-    select, input[type="checkbox"] {
-      font-size: 1.6vh;
-      padding: 0.6vh 0.8vw;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(5,8,20,0.9);
-      color: var(--text);
-      margin-top: 0.6vh;
-    }
-    .field { margin-bottom: 1.4vh; }
+    runtime.addEventListener("tick", () => {
 
-    /* Race screen */
+        const dt = runtime.dt;
 
-    #screen-race {
-      padding: 0;
-    }
-    #race-bg {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top, #1b2238 0%, #050814 55%, #020308 100%);
-    }
-    #race-track {
-      position: absolute;
-      left: 5vw;
-      right: 5vw;
-      bottom: 20vh;
-      height: 4vh;
-      border-radius: 999px;
-      background: linear-gradient(180deg, #444, #222);
-      box-shadow: 0 0 30px rgba(0,0,0,0.8);
-      overflow: hidden;
-    }
-    #race-track::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: repeating-linear-gradient(
-        90deg,
-        rgba(255,255,255,0.18) 0,
-        rgba(255,255,255,0.18) 2vw,
-        transparent 2vw,
-        transparent 4vw
-      );
-      opacity: 0.4;
-    }
-    #sled {
-      position: absolute;
-      bottom: 20vh;
-      width: 6vw;
-      height: 4vh;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #2ff7ff, #6bff4a);
-      box-shadow: 0 0 18px rgba(47,247,255,0.8);
-      transform: translateX(0);
-    }
+        // ---------------------------
+        // GAS / BROMs
+        // ---------------------------
+        if (Game.keyGas) Game.throttle += 1.5 * dt;
+        else Game.throttle -= 2 * dt;
 
-    /* HUD */
+        if (Game.keyBrake) Game.throttle -= 3 * dt;
 
-    #race-overlay { position: absolute; inset: 0; pointer-events: none; }
+        if (Game.halfGas)
+            Game.throttle = Math.min(Math.max(Game.throttle, 0), 0.5);
+        else
+            Game.throttle = Math.min(Math.max(Game.throttle, 0), 1);
 
-    #hud-raceinfo {
-      position: absolute;
-      right: 3vw;
-      bottom: 3vh;
-      text-align: right;
-      font-size: 1.6vh;
-    }
-    #hud-raceinfo .pos {
-      font-size: 3vh;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
-    #hud-raceinfo .lap {
-      margin-top: 0.4vh;
-      color: var(--text-muted);
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-    }
-    #hud-raceinfo .times {
-      margin-top: 0.8vh;
-      font-size: 1.5vh;
-      color: var(--text-muted);
-    }
-    #hud-raceinfo .times span { display: block; }
+        // ---------------------------
+        // RPM
+        // ---------------------------
+        Game.rpm = Game.throttle * Game.maxRPM;
 
-    #hud-sled {
-      position: absolute;
-      left: 3vw;
-      bottom: 3vh;
-      display: flex;
-      align-items: center;
-      gap: 1.6vw;
-      font-size: 1.4vh;
-    }
-    .sled-icon {
-      width: 7vh;
-      height: 7vh;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      position: relative;
-      overflow: hidden;
-      background: rgba(5, 8, 20, 0.9);
-    }
-    .sled-icon::before {
-      content: "";
-      position: absolute;
-      inset: 18% 10% 40% 10%;
-      border-radius: 999px;
-      border: 2px solid var(--accent2);
-    }
-    .sled-icon::after {
-      content: "";
-      position: absolute;
-      inset: 50% 18% 18% 18%;
-      border-radius: 999px;
-      border: 2px solid var(--accent2);
-    }
-    .sled-health { display: flex; flex-direction: column; gap: 0.6vh; }
-    .health-bar {
-      width: 18vh;
-      height: 0.9vh;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-      overflow: hidden;
-      position: relative;
-    }
-    .health-fill {
-      position: absolute;
-      inset: 0;
-      width: 80%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, var(--accent2), var(--accent));
-      box-shadow: 0 0 12px rgba(107, 255, 74, 0.5);
-    }
+        // ---------------------------
+        // ACCELERATION
+        // ---------------------------
+        let accel = 40;
 
-    #hud-standings {
-      position: absolute;
-      top: 2.4vh;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 70vw;
-      padding: 0.8vh 1.4vw;
-      border-radius: 999px;
-      background: linear-gradient(90deg, rgba(5, 8, 20, 0.9), rgba(3, 5, 12, 0.9));
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
-      justify-content: center;
-      gap: 2vw;
-      font-size: 1.4vh;
-    }
-    .standing {
-      display: flex;
-      gap: 0.4vw;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-    }
-    .standing.you {
-      color: var(--accent);
-      text-shadow: 0 0 10px rgba(47, 247, 255, 0.7);
-    }
+        if (Game.series === "PRO_LITE" || Game.series === "LITE") accel *= 1.2;
+        if (Game.series === "OPEN") accel *= 1.3;
+        if (Game.exhaust === "ggb") accel *= 1.05;
+        if (Game.exhaust === "custom") accel *= 1.1;
+        if (Game.hasStuds) accel *= 1.03;
+        if (Game.hasCAPRO) accel *= 1.02;
 
-    /* Start sequence */
+        Game.speed += Game.throttle * accel * dt;
+        Game.speed -= Game.speed * 0.1 * dt;
 
-    #start-seq {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-    .start-bars {
-      display: flex;
-      gap: 2vw;
-      align-items: flex-end;
-    }
-    .start-bar {
-      width: 3vw;
-      height: 18vh;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.06);
-      overflow: hidden;
-      position: relative;
-    }
-    .start-fill {
-      position: absolute;
-      inset: auto 0 0 0;
-      height: 0%;
-      background: linear-gradient(180deg, var(--accent), var(--accent2));
-      box-shadow: 0 0 18px rgba(47, 247, 255, 0.7);
-      transition: height 0.3s ease-out;
-    }
-    .start-fill.active-3 { height: 33%; background: #2f7fff; }
-    .start-fill.active-2 { height: 66%; background: #ffd52f; }
-    .start-fill.active-1 { height: 100%; background: #6bff4a; }
+        // ---------------------------
+        // APPLY PHYSICS TO PLAYER
+        // ---------------------------
+        const sled = runtime.objects.PlayerSled.getFirstInstance();
+        if (sled)
+            sled.applyForce(Game.speed * 10, 0);
 
-    #start-text {
-      position: absolute;
-      top: 60%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 2vh;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-    #go-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      font-size: 7vh;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: var(--accent2);
-      text-shadow: 0 0 24px rgba(107, 255, 74, 0.9);
-      opacity: 0;
-      transition: all 0.25s ease-out;
-    }
-    #go-text.show {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
+        // ---------------------------
+        // WHIP
+        // ---------------------------
+        if (!Game.onGround) {
+            if (Game.keyLeft) Game.angle -= 120 * dt;
+            if (Game.keyRight) Game.angle += 120 * dt;
+        } else {
+            Game.angle *= 0.9;
+        }
 
-  </style>
-</head>
-<body>
-  <div id="app">
+        Game.angle = Math.max(-45, Math.min(45, Game.angle));
 
-    <!-- Debug nav -->
-    <div id="debug-nav">
-      <button data-screen="screen-setup" class="active">Setup</button>
-      <button data-screen="screen-race">Race</button>
-    </div>
+        if (sled)
+            sled.angle = Game.angle;
 
-    <!-- Setup / serieval -->
-    <section id="screen-setup" class="screen active">
-      <div id="setup-left" class="glass panel">
-        <div class="title">Serie</div>
-        <div class="heading">Välj klass</div>
-        <div class="sub" style="margin-bottom:1.6vh;">
-          Välj vilken serie du vill köra i. Serien styr max RPM, gasläge och i OPEN även avgas & dubb.
-        </div>
-        <div class="divider"></div>
-
-        <div class="field">
-          <div class="label">Serie</div>
-          <select id="series-select">
-            <option value="12-14">12–14 ungdom</option>
-            <option value="14-16">14–16 ungdom</option>
-            <option value="PRO_LITE">PRO LITE</option>
-            <option value="LITE">LITE</option>
-            <option value="OPEN">OPEN</option>
-          </select>
-        </div>
-
-        <div id="open-options" style="display:none; margin-top:1.4vh;">
-          <div class="divider"></div>
-          <div class="label" style="margin-bottom:0.6vh;">OPEN inställningar</div>
-          <div class="field">
-            <div class="label">Avgasrör</div>
-            <select id="exhaust-select">
-              <option value="stock">Stock</option>
-              <option value="ggb">GGB</option>
-              <option value="custom">Egen slutburk</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="label">
-              <input type="checkbox" id="studs-checkbox" />
-              &nbsp; Dubb på mattan
-            </label>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-        <div class="field">
-          <div class="label">Aktuell setup</div>
-          <div class="value" id="setup-summary">12–14 ungdom • 6450 RPM • halv gas</div>
-        </div>
-
-        <div class="btn-row" style="margin-top:2vh;">
-          <button class="btn btn-primary" id="btn-start-race">Starta race</button>
-        </div>
-      </div>
-
-      <div id="setup-right" class="glass panel">
-        <div class="title">Info</div>
-        <div class="heading">Tekniska regler</div>
-        <div class="sub">
-          <ul style="margin-top:1vh; margin-left:1.4vw; line-height:1.6;">
-            <li>12–14: skoter strypt på <b>6450 RPM</b> och <b>halv gas</b>.</li>
-            <li>14–16: skoter strypt på <b>9945 RPM</b> och <b>halv gas</b>.</li>
-            <li>PRO LITE: samma strypning som 14–16 men <b>hel gas</b>.</li>
-            <li>LITE: samma som PRO LITE.</li>
-            <li>OPEN: samma strypning som 14–16/PRO LITE men du kan välja <b>avgas</b> och <b>dubb</b>.</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- Race -->
-    <section id="screen-race" class="screen">
-      <div id="race-bg"></div>
-      <div id="race-track"></div>
-      <div id="sled"></div>
-
-      <div id="race-overlay">
-        <div id="hud-standings">
-          <div class="standing">P1 #27 ANDERSSON +0.0</div>
-          <div class="standing you">P2 YOU +0.4</div>
-          <div class="standing">P3 #13 JOHNSON +1.1</div>
-        </div>
-
-        <div id="hud-raceinfo">
-          <div class="pos" id="hud-series">PRO LITE</div>
-          <div class="lap" id="hud-rpm">RPM: 0</div>
-          <div class="times">
-            <span id="hud-throttle">Gas: 0%</span>
-            <span id="hud-speed">Fart: 0 km/h</span>
-            <span id="hud-extra">Avgas: – • Dubb: –</span>
-          </div>
-        </div>
-
-        <div id="hud-sled">
-          <div class="sled-icon"></div>
-          <div class="sled-health">
-            <div class="label">Sled health</div>
-            <div class="health-bar"><div class="health-fill"></div></div>
-            <div class="label">Front grip</div>
-            <div class="health-bar"><div class="health-fill" id="grip-front"></div></div>
-            <div class="label">Rear grip</div>
-            <div class="health-bar"><div class="health-fill" id="grip-rear"></div></div>
-          </div>
-        </div>
-
-        <div id="start-seq">
-          <div class="start-bars">
-            <div class="start-bar"><div class="start-fill" id="bar3"></div></div>
-            <div class="start-bar"><div class="start-fill" id="bar2"></div></div>
-            <div class="start-bar"><div class="start-fill" id="bar1"></div></div>
-          </div>
-          <div id="start-text">Gate drop in 3.0</div>
-          <div id="go-text">GO!</div>
-        </div>
-      </div>
-    </section>
-
-  </div>
-
-  <script>
-    const screens = document.querySelectorAll(".screen");
-    const navButtons = document.querySelectorAll("#debug-nav button");
-    function showScreen(id) {
-      screens.forEach(s => s.classList.remove("active"));
-      document.getElementById(id).classList.add("active");
-      navButtons.forEach(b => b.classList.remove("active"));
-      navButtons.forEach(b => { if (b.dataset.screen === id) b.classList.add("active"); });
-    }
-    navButtons.forEach(btn => {
-      btn.addEventListener("click", () => showScreen(btn.dataset.screen));
+        // ---------------------------
+        // CAMERA
+        // ---------------------------
+        const cam = runtime.objects.CameraDummy.getFirstInstance();
+        if (cam && sled) {
+            cam.x = sled.x + 300;
+            cam.y = sled.y - 150;
+        }
     });
-
-    const seriesSelect = document.getElementById("series-select");
-    const openOptions = document.getElementById("open-options");
-    const exhaustSelect = document.getElementById("exhaust-select");
-    const studsCheckbox = document.getElementById("studs-checkbox");
-    const setupSummary = document.getElementById("setup-summary");
-    const btnStartRace = document.getElementById("btn-start-race");
-
-    const seriesConfig = {
-      "12-14": { name: "12–14 ungdom", maxRPM: 6450, halfGas: true, fullGas: false },
-      "14-16": { name: "14–16 ungdom", maxRPM: 9945, halfGas: true, fullGas: false },
-      "PRO_LITE": { name: "PRO LITE", maxRPM: 9945, halfGas: false, fullGas: true },
-      "LITE": { name: "LITE", maxRPM: 9945, halfGas: false, fullGas: true },
-      "OPEN": { name: "OPEN", maxRPM: 9945, halfGas: false, fullGas: true }
-    };
-
-    function updateSetupSummary() {
-      const val = seriesSelect.value;
-      const cfg = seriesConfig[val];
-      let gasText = cfg.halfGas ? "halv gas" : "hel gas";
-      let extra = "";
-      if (val === "OPEN") {
-        const ex = exhaustSelect.value;
-        const studs = studsCheckbox.checked;
-        let exText = ex === "ggb" ? "GGB" : ex === "stock" ? "Stock" : "Egen slutburk";
-        extra = ` • Avgas: ${exText} • Dubb: ${studs ? "Ja" : "Nej"}`;
-      }
-      setupSummary.textContent = `${cfg.name} • ${cfg.maxRPM} RPM • ${gasText}${extra}`;
-    }
-
-    seriesSelect.addEventListener("change", () => {
-      if (seriesSelect.value === "OPEN") {
-        openOptions.style.display = "block";
-      } else {
-        openOptions.style.display = "none";
-      }
-      updateSetupSummary();
-    });
-    exhaustSelect.addEventListener("change", updateSetupSummary);
-    studsCheckbox.addEventListener("change", updateSetupSummary);
-    updateSetupSummary();
-
-    // Race logic (enkel mock)
-    let currentSeries = seriesConfig["12-14"];
-    let currentExhaust = "stock";
-    let currentStuds = false;
-
-    let throttle = 0; // 0–1
-    let rpm = 0;
-    let speed = 0; // "km/h" känsla
-    let sledX = 0; // 0–1 längs banan
-    let running = false;
-
-    const hudSeries = document.getElementById("hud-series");
-    const hudRPM = document.getElementById("hud-rpm");
-    const hudThrottle = document.getElementById("hud-throttle");
-    const hudSpeed = document.getElementById("hud-speed");
-    const hudExtra = document.getElementById("hud-extra");
-    const sledEl = document.getElementById("sled");
-    const gripFront = document.getElementById("grip-front");
-    const gripRear = document.getElementById("grip-rear");
-
-    function applySeriesToHUD() {
-      hudSeries.textContent = currentSeries.name;
-      let exText = "–";
-      if (currentSeries.name === "OPEN") {
-        exText = currentExhaust === "ggb" ? "GGB" : currentExhaust === "stock" ? "Stock" : "Egen";
-      }
-      hudExtra.textContent = `Avgas: ${exText} • Dubb: ${currentStuds ? "Ja" : "Nej"}`;
-      // Grip indikativt
-      let gripBase = currentStuds ? 0.95 : 0.7;
-      gripFront.style.width = (gripBase * 100) + "%";
-      gripRear.style.width = (gripBase * 100) + "%";
-    }
-
-    btnStartRace.addEventListener("click", () => {
-      const val = seriesSelect.value;
-      currentSeries = seriesConfig[val];
-      currentExhaust = exhaustSelect.value;
-      currentStuds = studsCheckbox.checked;
-      throttle = 0;
-      rpm = 0;
-      speed = 0;
-      sledX = 0;
-      applySeriesToHUD();
-      showScreen("screen-race");
-      document.getElementById("start-seq").style.display = "flex";
-      runStartSequence();
-    });
-
-    // Körning – piltangenter
-    const keys = { up: false, down: false };
-    window.addEventListener("keydown", e => {
-      if (e.code === "ArrowUp") keys.up = true;
-      if (e.code === "ArrowDown") keys.down = true;
-    });
-    window.addEventListener("keyup", e => {
-      if (e.code === "ArrowUp") keys.up = false;
-      if (e.code === "ArrowDown") keys.down = false;
-    });
-
-    function updatePhysics(dt) {
-      // Gasbegränsning
-      let maxThrottle = 1;
-      if (currentSeries.halfGas) maxThrottle = 0.5;
-
-      // Acceleration beroende på serie + avgas + dubb
-      let accelBase = 0.6;
-      if (currentSeries.name === "PRO LITE" || currentSeries.name === "LITE") accelBase = 0.8;
-      if (currentSeries.name === "OPEN") accelBase = 0.9;
-
-      if (currentExhaust === "ggb") accelBase += 0.1;
-      if (currentExhaust === "custom") accelBase += 0.15;
-
-      if (currentStuds) accelBase += 0.05;
-
-      if (keys.up) {
-        throttle += accelBase * dt;
-      } else {
-        throttle -= 0.8 * dt;
-      }
-      if (keys.down) {
-        throttle -= 1.2 * dt;
-      }
-
-      throttle = Math.max(0, Math.min(maxThrottle, throttle));
-
-      rpm = throttle * currentSeries.maxRPM;
-      // Fart – bara känsla
-      speed = throttle * 120; // km/h ungefär
-
-      // Rörelse längs banan
-      let speedFactor = speed / 120; // 0–1
-      sledX += speedFactor * dt * 0.4; // 0.4 = hur snabbt man tar sig runt
-      if (sledX > 1) sledX -= 1;
-
-      // Uppdatera HUD
-      hudRPM.textContent = `RPM: ${rpm.toFixed(0)}`;
-      hudThrottle.textContent = `Gas: ${(throttle * 100).toFixed(0)}%`;
-      hudSpeed.textContent = `Fart: ${speed.toFixed(0)} km/h`;
-
-      // Uppdatera position
-      const track = document.getElementById("race-track");
-      const trackRect = track.getBoundingClientRect();
-      const sledWidth = sledEl.getBoundingClientRect().width;
-      const minX = trackRect.left + 0.02 * trackRect.width;
-      const maxX = trackRect.right - 0.02 * trackRect.width - sledWidth;
-      const x = minX + (maxX - minX) * sledX;
-      sledEl.style.transform = `translateX(${x - trackRect.left}px)`;
-    }
-
-    let lastTime = null;
-    function loop(timestamp) {
-      if (!lastTime) lastTime = timestamp;
-      const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
-      lastTime = timestamp;
-
-      if (document.getElementById("screen-race").classList.contains("active")) {
-        updatePhysics(dt);
-      }
-
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-
-    // Startsekvens
-    function runStartSequence() {
-      const bar3 = document.getElementById("bar3");
-      const bar2 = document.getElementById("bar2");
-      const bar1 = document.getElementById("bar1");
-      const startText = document.getElementById("start-text");
-      const goText = document.getElementById("go-text");
-
-      bar3.className = "start-fill";
-      bar2.className = "start-fill";
-      bar1.className = "start-fill";
-      goText.classList.remove("show");
-      startText.textContent = "Gate drop in 3.0";
-
-      setTimeout(() => {
-        bar3.classList.add("active-3");
-        startText.textContent = "Gate drop in 2.0";
-      }, 400);
-
-      setTimeout(() => {
-        bar2.classList.add("active-2");
-        startText.textContent = "Gate drop in 1.0";
-      }, 900);
-
-      setTimeout(() => {
-        bar1.classList.add("active-1");
-        startText.textContent = "";
-      }, 1400);
-
-      setTimeout(() => {
-        goText.classList.add("show");
-      }, 1800);
-
-      setTimeout(() => {
-        goText.classList.remove("show");
-        document.getElementById("start-seq").style.display = "none";
-      }, 2600);
-    }
-  </script>
-</body>
-</html>
+});
