@@ -29,7 +29,7 @@
 <body>
   <div id="info">
     Piltangenter: vänster/höger = styra, upp = gas, ned = broms<br>
-    Hoppa genom att köra över backar.
+    Tryck 1 / 2 / 3 för att byta skoter.
   </div>
   <canvas id="game" width="960" height="540"></canvas>
 
@@ -40,14 +40,56 @@
     const W = canvas.width;
     const H = canvas.height;
 
-    // Värld
+    // ============================
+    // SKOTERMODELLER
+    // ============================
+    const sledModels = [
+      {
+        name: "Stock 12-14",
+        bodyColor: "#ffffff",
+        accentColor: "#00eaff",
+        length: 80,
+        weight: 180,
+        maxSpeed: 900,
+        accel: 1800,
+        whipPower: 2.5
+      },
+      {
+        name: "Pro Lite",
+        bodyColor: "#ff4444",
+        accentColor: "#ffee00",
+        length: 85,
+        weight: 170,
+        maxSpeed: 1050,
+        accel: 2100,
+        whipPower: 3.0
+      },
+      {
+        name: "Open Mod",
+        bodyColor: "#00ff55",
+        accentColor: "#ffffff",
+        length: 90,
+        weight: 160,
+        maxSpeed: 1200,
+        accel: 2500,
+        whipPower: 3.5
+      }
+    ];
+
+    let currentModel = 0;
+
+    // ============================
+    // VÄRLD
+    // ============================
     const world = {
       gravity: 2000,
       friction: 0.98,
       cameraX: 0
     };
 
-    // Input
+    // ============================
+    // INPUT
+    // ============================
     const input = {
       left: false,
       right: false,
@@ -55,7 +97,9 @@
       brake: false
     };
 
-    // Skoter
+    // ============================
+    // SKOTER
+    // ============================
     const sled = {
       x: 100,
       y: 300,
@@ -66,16 +110,33 @@
       angle: 0,
       onGround: false,
       throttle: 0,
-      maxSpeed: 900
+      maxSpeed: 900,
+      accel: 1800,
+      whipPower: 2.5,
+      bodyColor: "#fff",
+      accentColor: "#0ff"
     };
 
-    // Enkel bana: en serie segment (x, y)
+    function applyModel(i) {
+      const m = sledModels[i];
+      sled.width = m.length;
+      sled.maxSpeed = m.maxSpeed;
+      sled.accel = m.accel;
+      sled.whipPower = m.whipPower;
+      sled.bodyColor = m.bodyColor;
+      sled.accentColor = m.accentColor;
+    }
+
+    applyModel(0);
+
+    // ============================
+    // BANA
+    // ============================
     const track = [];
     (function buildTrack() {
       const baseY = 400;
       const segmentWidth = 200;
       let x = 0;
-      let y = baseY;
       for (let i = 0; i < 40; i++) {
         const bump = Math.sin(i * 0.6) * 80;
         track.push({ x, y: baseY + bump });
@@ -83,23 +144,7 @@
       }
     })();
 
-    // Input events
-    window.addEventListener("keydown", e => {
-      if (e.key === "ArrowLeft") input.left = true;
-      if (e.key === "ArrowRight") input.right = true;
-      if (e.key === "ArrowUp") input.gas = true;
-      if (e.key === "ArrowDown") input.brake = true;
-    });
-
-    window.addEventListener("keyup", e => {
-      if (e.key === "ArrowLeft") input.left = false;
-      if (e.key === "ArrowRight") input.right = false;
-      if (e.key === "ArrowUp") input.gas = false;
-      if (e.key === "ArrowDown") input.brake = false;
-    });
-
     function getTrackYAt(x) {
-      if (track.length < 2) return H;
       if (x <= track[0].x) return track[0].y;
       if (x >= track[track.length - 1].x) return track[track.length - 1].y;
 
@@ -114,6 +159,30 @@
       return H;
     }
 
+    // ============================
+    // INPUT EVENTS
+    // ============================
+    window.addEventListener("keydown", e => {
+      if (e.key === "ArrowLeft") input.left = true;
+      if (e.key === "ArrowRight") input.right = true;
+      if (e.key === "ArrowUp") input.gas = true;
+      if (e.key === "ArrowDown") input.brake = true;
+
+      if (e.key === "1") { currentModel = 0; applyModel(0); }
+      if (e.key === "2") { currentModel = 1; applyModel(1); }
+      if (e.key === "3") { currentModel = 2; applyModel(2); }
+    });
+
+    window.addEventListener("keyup", e => {
+      if (e.key === "ArrowLeft") input.left = false;
+      if (e.key === "ArrowRight") input.right = false;
+      if (e.key === "ArrowUp") input.gas = false;
+      if (e.key === "ArrowDown") input.brake = false;
+    });
+
+    // ============================
+    // SPELLOOP
+    // ============================
     let lastTime = performance.now();
 
     function loop(now) {
@@ -126,37 +195,24 @@
 
     function update(dt) {
       // Gas / broms
-      if (input.gas) {
-        sled.throttle += 2 * dt;
-      } else {
-        sled.throttle -= 3 * dt;
-      }
-      if (input.brake) {
-        sled.throttle -= 5 * dt;
-      }
+      if (input.gas) sled.throttle += 2 * dt;
+      else sled.throttle -= 3 * dt;
+      if (input.brake) sled.throttle -= 5 * dt;
       sled.throttle = Math.max(0, Math.min(1, sled.throttle));
 
-      // Horisontell kraft
-      const accel = 1800;
-      sled.vx += sled.throttle * accel * dt;
+      // Acceleration
+      sled.vx += sled.throttle * sled.accel * dt;
+      if (sled.vx > sled.maxSpeed) sled.vx = sled.maxSpeed;
 
-      // Sidostyrning i luften (whip)
+      // Whip
       if (!sled.onGround) {
-        if (input.left) sled.angle -= 2.5 * dt;
-        if (input.right) sled.angle += 2.5 * dt;
+        if (input.left) sled.angle -= sled.whipPower * dt;
+        if (input.right) sled.angle += sled.whipPower * dt;
       } else {
-        // På marken – stabilisera
         sled.angle *= 0.9;
       }
 
-      // Begränsa vinkel
-      const maxAngle = 0.6;
-      if (sled.angle > maxAngle) sled.angle = maxAngle;
-      if (sled.angle < -maxAngle) sled.angle = -maxAngle;
-
-      // Begränsa hastighet
-      if (sled.vx > sled.maxSpeed) sled.vx = sled.maxSpeed;
-      if (sled.vx < 0) sled.vx = 0;
+      sled.angle = Math.max(-0.6, Math.min(0.6, sled.angle));
 
       // Gravitation
       sled.vy += world.gravity * dt;
@@ -165,7 +221,7 @@
       sled.x += sled.vx * dt;
       sled.y += sled.vy * dt;
 
-      // Kollision med mark
+      // Markkontakt
       const groundY = getTrackYAt(sled.x);
       if (sled.y + sled.height / 2 >= groundY) {
         sled.y = groundY - sled.height / 2;
@@ -176,15 +232,16 @@
       }
 
       // Friktion
-      if (sled.onGround) {
-        sled.vx *= world.friction;
-      }
+      if (sled.onGround) sled.vx *= world.friction;
 
       // Kamera
       world.cameraX = sled.x - W * 0.3;
       if (world.cameraX < 0) world.cameraX = 0;
     }
 
+    // ============================
+    // RITNING
+    // ============================
     function drawTrack() {
       ctx.strokeStyle = "#3cf";
       ctx.lineWidth = 4;
@@ -206,14 +263,15 @@
       ctx.translate(sx, sy);
       ctx.rotate(sled.angle);
 
-      // Skoterkropp
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = sled.bodyColor;
       ctx.fillRect(-sled.width / 2, -sled.height / 2, sled.width, sled.height);
 
-      // Förarens “huvud”
+      ctx.fillStyle = sled.accentColor;
+      ctx.fillRect(-sled.width / 2, -sled.height / 2 + 5, sled.width, 6);
+
       ctx.beginPath();
       ctx.arc(10, -sled.height / 2 - 10, 8, 0, Math.PI * 2);
-      ctx.fillStyle = "#0ff";
+      ctx.fillStyle = sled.accentColor;
       ctx.fill();
 
       ctx.restore();
@@ -222,28 +280,22 @@
     function drawHUD() {
       ctx.fillStyle = "#fff";
       ctx.font = "14px system-ui";
-      ctx.fillText("Speed: " + Math.round(sled.vx) + " px/s", 20, 30);
-      ctx.fillText("Throttle: " + sled.throttle.toFixed(2), 20, 50);
-      ctx.fillText("On ground: " + (sled.onGround ? "ja" : "nej"), 20, 70);
+      ctx.fillText("Modell: " + sledModels[currentModel].name, 20, 30);
+      ctx.fillText("Speed: " + Math.round(sled.vx), 20, 50);
+      ctx.fillText("Throttle: " + sled.throttle.toFixed(2), 20, 70);
     }
 
     function draw() {
       ctx.clearRect(0, 0, W, H);
 
-      // Bakgrund
       const g = ctx.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, "#050814");
       g.addColorStop(1, "#02040a");
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, H);
 
-      // Mark
       drawTrack();
-
-      // Skoter
       drawSled();
-
-      // HUD
       drawHUD();
     }
 
